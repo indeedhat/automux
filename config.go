@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
 
@@ -38,7 +40,8 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
-	// TODO: validate?
+	// stop spaces from breaking the tmux commands
+	c.Session = strings.ReplaceAll(c.Session, " ", "-")
 
 	return &c, nil
 }

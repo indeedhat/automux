@@ -12,7 +12,7 @@ import (
 	"os/exec"
 )
 
-const configPath = ".automux.toml"
+const configPath = ".automux.hcl"
 
 func main() {
 	// if we are already in a tmux session then there is nothing to do
@@ -24,14 +24,14 @@ func main() {
 		return
 	}
 
-	c, err := LoadConfig("./conf.hcl")
+	c, err := LoadConfig(configPath)
 	if err != nil {
-		log.Fatal("!! invalid automux config !!")
+		log.Fatal("!! invalid automux config !!\n ", err)
 	}
 
 	if !c.SingleSession {
 		// Not totally unique as a suffix but i think good enough for this use case
-		c.Session += time.Now().Format("_15:04:05")
+		c.Session += time.Now().Format("_150405")
 	}
 
 	if sessionExists(c) {
