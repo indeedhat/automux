@@ -7,13 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"os"
 	"os/exec"
-
-	"golang.org/x/term"
 )
 
 const configPath = ".automux.hcl"
@@ -38,7 +37,6 @@ func main() {
 	}
 
 	c.debug = debug
-	c.screenWidth, c.screenHeight, _ = term.GetSize(int(os.Stdout.Fd()))
 
 	if !c.SingleSession {
 		// Not totally unique as a suffix but i think good enough for this use case
@@ -91,12 +89,16 @@ func processPanels(conf *Config) {
 		for _, split := range window.Splits {
 			// This looks backwards but it makes the splits open in the way i expect
 			orientation := "-v"
+			resize := "-y"
 			if split.Vertical {
 				orientation = "-h"
+				resize = "-x"
 			}
 
 			cmd(conf, "split-window", orientation)
-
+			if split.Size != 0 {
+				cmd(conf, "resize-pane", resize, strconv.Itoa(split.Size)+"%")
+			}
 			if split.Exec != "" {
 				cmd(conf, "send-keys", split.Exec, "Enter")
 			}
@@ -141,6 +143,10 @@ func sessionExists(conf *Config) bool {
 
 // awaitSession waits for the tmux session to become available before we start trying to manipulate it
 func awaitSession(c *Config) {
+	if c.debug {
+		return
+	}
+
 	ticker := time.NewTicker(50 * time.Millisecond)
 	for {
 		select {

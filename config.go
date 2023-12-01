@@ -15,7 +15,8 @@ type Config struct {
 	// Windows contains each of the tmux windo defs
 	Windows []Window `hcl:"window,block"`
 
-	Debug bool
+	// Cli args
+	debug bool
 }
 
 type Window struct {
@@ -32,6 +33,8 @@ type Split struct {
 	Vertical bool `hcl:"vertical,optional"`
 	// Cmd contains any command to be ran when opening the split
 	Exec string `hcl:"exec,optional"`
+	// Size in % of the total screen realestate to take up
+	Size int `hcl:"size,optional"`
 }
 
 // LoadConfig loads the config from the given file path

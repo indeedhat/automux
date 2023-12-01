@@ -13,6 +13,10 @@ cd() {
 }
 ```
 
+## Configure
+[See here](configs/example.automux.hcl)
+
 ## TODO
 - [ ] find a way to detach the session from the go app so it can shutdown without killing the sessien
 - [ ] have a way to auto focus a given split/window on load
+
