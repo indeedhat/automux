@@ -12,17 +12,23 @@ import (
 
 	"os"
 	"os/exec"
+
+	"golang.org/x/term"
 )
 
 const configPath = ".automux.hcl"
 
 func main() {
+	var debug bool
+	flag.BoolVar(&debug, "debug", false, "print tmux commands rather than running them")
+	flag.Parse()
+
 	// if we are already in a tmux session then there is nothing to do
 	if os.Getenv("TMUX") != "" {
 		return
 	}
 
-	if _, err := os.Stat(configPath); err != nil && errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
 		return
 	}
 
@@ -31,8 +37,8 @@ func main() {
 		log.Fatal("!! invalid automux config !!\n ", err)
 	}
 
-	flag.BoolVar(&c.Debug, "debug", c.Debug, "print tmux commands rather than running them")
-	flag.Parse()
+	c.debug = debug
+	c.screenWidth, c.screenHeight, _ = term.GetSize(int(os.Stdout.Fd()))
 
 	if !c.SingleSession {
 		// Not totally unique as a suffix but i think good enough for this use case
@@ -43,26 +49,28 @@ func main() {
 		return
 	}
 
-	var cmd *exec.Cmd
-
-	if c.Debug {
+	if c.debug {
 		fmt.Println("tmux new-session -s " + c.Session)
 	} else {
+		cmd := exec.Command("tmux", "new-session", "-d", "-s", c.Session)
+		cmd.Run()
 
-		cmd = exec.Command("tmux", "new-session", "-s", c.Session)
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Start()
 	}
 
-	time.Sleep(100 * time.Millisecond)
 	awaitSession(c)
 	processPanels(c)
 
-	// TODO: find a way to disconnect from the session
-	if !c.Debug {
-		cmd.Wait()
+	if !c.debug {
+		cmd := exec.Command("tmux", "attach", "-t", c.Session)
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Run()
+		// TODO: find a way to disconnect from the session
 	}
 }
 
@@ -103,7 +111,7 @@ func processPanels(conf *Config) {
 func cmd(conf *Config, parts ...string) {
 	parts = append([]string{parts[0], "-t", conf.Session}, parts[1:]...)
 
-	if conf.Debug {
+	if conf.debug {
 		fmt.Println("tmux ", strings.Join(parts, " "))
 		return
 	}
