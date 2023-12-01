@@ -26,6 +26,8 @@ type Window struct {
 	Exec string `hcl:"exec,optional"`
 	// Splits contains any extra splits to be opened in this window/tab
 	Splits []Split `hcl:"split,block"`
+	// Focus sets the focus to this window after setup is done
+	Focus bool `hcl:"focus,optional"`
 }
 
 type Split struct {
@@ -35,6 +37,8 @@ type Split struct {
 	Exec string `hcl:"exec,optional"`
 	// Size in % of the total screen realestate to take up
 	Size int `hcl:"size,optional"`
+	// Focus sets the focus to this split after setup is done
+	Focus bool `hcl:"focus,optional"`
 }
 
 // LoadConfig loads the config from the given file path

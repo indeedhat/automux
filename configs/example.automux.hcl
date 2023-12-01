@@ -9,6 +9,10 @@ single_session = false
 # each additional block will add a new window/tab
 window "window/tab title" {
     exec = "cmd_to_run_in_window"
+    # focus can be set for any window/split
+    # once the setup is done focus will be set to the last window/split in the config file that 
+    # has focus = true
+    focus = true
 
     split {
         vertical = true

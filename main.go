@@ -74,7 +74,13 @@ func main() {
 
 // processPanels walkes through the configs windows/splits an applies them to the current tmux session
 func processPanels(conf *Config) {
+	var focus string
+
 	for i, window := range conf.Windows {
+		if window.Focus {
+			focus = fmt.Sprintf(":%d.%d", i, 0)
+		}
+
 		if i != 0 {
 			cmd(conf, "new-window")
 		}
@@ -86,7 +92,11 @@ func processPanels(conf *Config) {
 			cmd(conf, "send-keys", window.Exec, "Enter")
 		}
 
-		for _, split := range window.Splits {
+		for j, split := range window.Splits {
+			if split.Focus {
+				focus = fmt.Sprintf(":%d.%d", i, j)
+			}
+
 			// This looks backwards but it makes the splits open in the way i expect
 			orientation := "-v"
 			resize := "-y"
@@ -96,6 +106,7 @@ func processPanels(conf *Config) {
 			}
 
 			cmd(conf, "split-window", orientation)
+
 			if split.Size != 0 {
 				cmd(conf, "resize-pane", resize, strconv.Itoa(split.Size)+"%")
 			}
@@ -106,6 +117,16 @@ func processPanels(conf *Config) {
 
 		// stops the opening of programs from overwriting tab
 		cmd(conf, "rename-window", window.Title)
+	}
+
+	if focus != "" {
+		// replacing the session id is hacky and i hate it but im too lazy to come up witha proper
+		// solution for now
+		ses := conf.Session
+		conf.Session += focus
+		cmd(conf, "select-window")
+		cmd(conf, "select-pane")
+		conf.Session = ses
 	}
 }
 
