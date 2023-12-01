@@ -14,6 +14,8 @@ type Config struct {
 	SingleSession bool `hcl:"single_session,optional"`
 	// Windows contains each of the tmux windo defs
 	Windows []Window `hcl:"window,block"`
+
+	Debug bool
 }
 
 type Window struct {

@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"flag"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -29,6 +31,9 @@ func main() {
 		log.Fatal("!! invalid automux config !!\n ", err)
 	}
 
+	flag.BoolVar(&c.Debug, "debug", c.Debug, "print tmux commands rather than running them")
+	flag.Parse()
+
 	if !c.SingleSession {
 		// Not totally unique as a suffix but i think good enough for this use case
 		c.Session += time.Now().Format("_150405")
@@ -38,16 +43,27 @@ func main() {
 		return
 	}
 
-	cmd := exec.Command("tmux", "new-session", "-s", c.Session)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Start()
+	var cmd *exec.Cmd
 
+	if c.Debug {
+		fmt.Println("tmux new-session -s " + c.Session)
+	} else {
+
+		cmd = exec.Command("tmux", "new-session", "-s", c.Session)
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+		cmd.Start()
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	awaitSession(c)
 	processPanels(c)
 
 	// TODO: find a way to disconnect from the session
-	cmd.Wait()
+	if !c.Debug {
+		cmd.Wait()
+	}
 }
 
 // processPanels walkes through the configs windows/splits an applies them to the current tmux session
@@ -86,6 +102,12 @@ func processPanels(conf *Config) {
 // cmd is an alias function to make running subsequent tmux commands simpler and more readable
 func cmd(conf *Config, parts ...string) {
 	parts = append([]string{parts[0], "-t", conf.Session}, parts[1:]...)
+
+	if conf.Debug {
+		fmt.Println("tmux ", strings.Join(parts, " "))
+		return
+	}
+
 	c := exec.Command("tmux", parts...)
 	c.Run()
 }
@@ -107,4 +129,28 @@ func sessionExists(conf *Config) bool {
 	}
 
 	return false
+}
+
+// awaitSession waits for the tmux session to become available before we start trying to manipulate it
+func awaitSession(c *Config) {
+	ticker := time.NewTicker(50 * time.Millisecond)
+	for {
+		select {
+		case <-time.After(time.Second):
+			return
+		case <-ticker.C:
+			cmd := exec.Command("tmux", "ls")
+			data, err := cmd.CombinedOutput()
+			if err != nil {
+				continue
+			}
+
+			s := bufio.NewScanner(bytes.NewReader(data))
+			for s.Scan() {
+				if strings.HasPrefix(s.Text(), c.Session) {
+					return
+				}
+			}
+		}
+	}
 }
