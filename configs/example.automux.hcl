@@ -2,6 +2,9 @@
 # NOTE: this is the only required field
 session = "my-session"
 
+# config lets you set a custom tmux config for this directory
+config = "./tmux.conf"
+
 # when set automux will not run if there is already a tmux session with the provided {session}
 single_session = false 
 

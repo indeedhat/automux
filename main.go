@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -81,14 +79,14 @@ func processPanels(conf *Config) {
 		}
 
 		if i != 0 {
-			cmd(conf, "new-window")
+			tmux(conf, "new-window")
 		}
 
 		// renaming the window for some reasonstops issues with blank splits
-		cmd(conf, "rename-window", window.Title)
+		tmux(conf, "rename-window", window.Title)
 
 		if window.Exec != "" {
-			cmd(conf, "send-keys", window.Exec, "Enter")
+			tmux(conf, "send-keys", window.Exec, "Enter")
 		}
 
 		for j, split := range window.Splits {
@@ -104,18 +102,18 @@ func processPanels(conf *Config) {
 				resize = "-x"
 			}
 
-			cmd(conf, "split-window", orientation)
+			tmux(conf, "split-window", orientation)
 
 			if split.Size != 0 {
-				cmd(conf, "resize-pane", resize, strconv.Itoa(split.Size)+"%")
+				tmux(conf, "resize-pane", resize, strconv.Itoa(split.Size)+"%")
 			}
 			if split.Exec != "" {
-				cmd(conf, "send-keys", split.Exec, "Enter")
+				tmux(conf, "send-keys", split.Exec, "Enter")
 			}
 		}
 
 		// stops the opening of programs from overwriting tab
-		cmd(conf, "rename-window", window.Title)
+		tmux(conf, "rename-window", window.Title)
 	}
 
 	if focus != "" {
@@ -123,68 +121,8 @@ func processPanels(conf *Config) {
 		// solution for now
 		ses := conf.Session
 		conf.Session += focus
-		cmd(conf, "select-window")
-		cmd(conf, "select-pane")
+		tmux(conf, "select-window")
+		tmux(conf, "select-pane")
 		conf.Session = ses
-	}
-}
-
-// cmd is an alias function to make running subsequent tmux commands simpler and more readable
-func cmd(conf *Config, parts ...string) {
-	parts = append([]string{parts[0], "-t", conf.Session}, parts[1:]...)
-
-	if conf.debug {
-		fmt.Println("tmux ", strings.Join(parts, " "))
-		return
-	}
-
-	c := exec.Command("tmux", parts...)
-	c.Run()
-}
-
-// sessionExists checks if there is already a tmux session with the provided session id/name
-func sessionExists(conf *Config) bool {
-	c := exec.Command("tmux", "ls")
-	out, err := c.CombinedOutput()
-	if err != nil {
-		return false
-	}
-	s := bufio.NewScanner(bytes.NewReader(out))
-
-	for s.Scan() {
-		parts := strings.Split(s.Text(), ":")
-		if len(parts) > 0 && parts[0] == conf.Session {
-			return true
-		}
-	}
-
-	return false
-}
-
-// awaitSession waits for the tmux session to become available before we start trying to manipulate it
-func awaitSession(c *Config) {
-	if c.debug {
-		return
-	}
-
-	ticker := time.NewTicker(50 * time.Millisecond)
-	for {
-		select {
-		case <-time.After(time.Second):
-			return
-		case <-ticker.C:
-			cmd := exec.Command("tmux", "ls")
-			data, err := cmd.CombinedOutput()
-			if err != nil {
-				continue
-			}
-
-			s := bufio.NewScanner(bytes.NewReader(data))
-			for s.Scan() {
-				if strings.HasPrefix(s.Text(), c.Session) {
-					return
-				}
-			}
-		}
 	}
 }
