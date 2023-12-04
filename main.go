@@ -47,16 +47,15 @@ func main() {
 		return
 	}
 
-	if c.debug {
-		fmt.Println("tmux new-session -s " + c.Session)
-	} else {
-		cmd := exec.Command("tmux", "new-session", "-d", "-s", c.Session)
-		cmd.Run()
+	cmd := exec.Command("tmux", "new-session", "-d", "-s", c.Session)
+	if c.Config != "" {
+		cmd.Args = append(cmd.Args, "-f", c.Config)
+	}
 
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Start()
+	if c.debug {
+		fmt.Println(strings.Join(cmd.Args, " "))
+	} else {
+		cmd.Run()
 	}
 
 	awaitSession(c)

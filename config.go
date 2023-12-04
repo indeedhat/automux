@@ -11,7 +11,8 @@ type Config struct {
 	Session string `hcl:"session"`
 	// SingleSession when set automux will not run if there is already a tmux session with the
 	// provided {session}
-	SingleSession bool `hcl:"single_session,optional"`
+	SingleSession bool   `hcl:"single_session,optional"`
+	Config        string `hcl:"config,optional"`
 	// Windows contains each of the tmux windo defs
 	Windows []Window `hcl:"window,block"`
 
