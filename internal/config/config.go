@@ -1,10 +1,14 @@
-package main
+package config
 
 import (
+	"errors"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/hcl/v2/hclsimple"
 )
+
+const DefaultPath = ".automux.hcl"
 
 type Config struct {
 	// Session id and title for the tmux session
@@ -17,7 +21,7 @@ type Config struct {
 	Windows []Window `hcl:"window,block"`
 
 	// Cli args
-	debug bool
+	Debug bool
 }
 
 type Window struct {
@@ -42,8 +46,8 @@ type Split struct {
 	Focus bool `hcl:"focus,optional"`
 }
 
-// LoadConfig loads the config from the given file path
-func LoadConfig(path string) (*Config, error) {
+// Load loads the config from the given file path
+func Load(path string) (*Config, error) {
 	var c Config
 
 	if err := hclsimple.DecodeFile(path, nil, &c); err != nil {
@@ -54,4 +58,18 @@ func LoadConfig(path string) (*Config, error) {
 	c.Session = strings.ReplaceAll(c.Session, " ", "-")
 
 	return &c, nil
+}
+
+// Exists checks if an automux config exists in the current directory
+func Exists(path ...string) bool {
+	p := DefaultPath
+	if len(path) > 0 {
+		p = path[0]
+	}
+
+	if _, err := os.Stat(p); errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+
+	return true
 }

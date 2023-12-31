@@ -1,76 +1,60 @@
-package main
+package cmd
 
 import (
-	"errors"
-	"flag"
 	"fmt"
-	"log"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
-	"os"
-	"os/exec"
+	"github.com/indeedhat/automux/internal/config"
+	"github.com/indeedhat/automux/internal/tmux"
 )
 
-const configPath = ".automux.hcl"
-
-func main() {
-	var debug bool
-	flag.BoolVar(&debug, "debug", false, "print tmux commands rather than running them")
-	flag.Parse()
-
+// TriggerCmd is the handler for triggering the auto mux start procedure
+func TriggerCmd(conf *config.Config) error {
 	// if we are already in a tmux session then there is nothing to do
 	if os.Getenv("TMUX") != "" {
-		return
+		return nil
 	}
 
-	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
-		return
-	}
-
-	c, err := LoadConfig(configPath)
-	if err != nil {
-		log.Fatal("!! invalid automux config !!\n ", err)
-	}
-
-	c.debug = debug
-
-	if !c.SingleSession {
+	if !conf.SingleSession {
 		// Not totally unique as a suffix but i think good enough for this use case
-		c.Session += time.Now().Format("_150405")
+		conf.Session += time.Now().Format("_150405")
 	}
 
-	if sessionExists(c) {
-		return
+	if tmux.SessionExists(conf) {
+		return nil
 	}
 
-	cmd := exec.Command("tmux", "new-session", "-d", "-s", c.Session)
-	if c.Config != "" {
-		cmd.Args = append(cmd.Args, "-f", c.Config)
+	cmd := exec.Command("tmux", "new-session", "-d", "-s", conf.Session)
+	if conf.Config != "" {
+		cmd.Args = append(cmd.Args, "-f", conf.Config)
 	}
 
-	if c.debug {
+	if conf.Debug {
 		fmt.Println(strings.Join(cmd.Args, " "))
 	} else {
 		cmd.Run()
 	}
 
-	awaitSession(c)
-	processPanels(c)
+	tmux.AwaitSession(conf)
+	processPanels(conf)
 
-	if !c.debug {
-		cmd := exec.Command("tmux", "attach", "-t", c.Session)
+	if !conf.Debug {
+		cmd := exec.Command("tmux", "attach", "-t", conf.Session)
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Run()
 		// TODO: find a way to disconnect from the session
 	}
+	return nil
 }
 
 // processPanels walkes through the configs windows/splits an applies them to the current tmux session
-func processPanels(conf *Config) {
+func processPanels(conf *config.Config) {
 	var focus string
 
 	for i, window := range conf.Windows {
@@ -79,14 +63,14 @@ func processPanels(conf *Config) {
 		}
 
 		if i != 0 {
-			tmux(conf, "new-window")
+			tmux.Cmd(conf, "new-window")
 		}
 
 		// renaming the window for some reasonstops issues with blank splits
-		tmux(conf, "rename-window", window.Title)
+		tmux.Cmd(conf, "rename-window", window.Title)
 
 		if window.Exec != "" {
-			tmux(conf, "send-keys", window.Exec, "Enter")
+			tmux.Cmd(conf, "send-keys", window.Exec, "Enter")
 		}
 
 		for j, split := range window.Splits {
@@ -102,18 +86,18 @@ func processPanels(conf *Config) {
 				resize = "-x"
 			}
 
-			tmux(conf, "split-window", orientation)
+			tmux.Cmd(conf, "split-window", orientation)
 
 			if split.Size != 0 {
-				tmux(conf, "resize-pane", resize, strconv.Itoa(split.Size)+"%")
+				tmux.Cmd(conf, "resize-pane", resize, strconv.Itoa(split.Size)+"%")
 			}
 			if split.Exec != "" {
-				tmux(conf, "send-keys", split.Exec, "Enter")
+				tmux.Cmd(conf, "send-keys", split.Exec, "Enter")
 			}
 		}
 
 		// stops the opening of programs from overwriting tab
-		tmux(conf, "rename-window", window.Title)
+		tmux.Cmd(conf, "rename-window", window.Title)
 	}
 
 	if focus != "" {
@@ -121,8 +105,8 @@ func processPanels(conf *Config) {
 		// solution for now
 		ses := conf.Session
 		conf.Session += focus
-		tmux(conf, "select-window")
-		tmux(conf, "select-pane")
+		tmux.Cmd(conf, "select-window")
+		tmux.Cmd(conf, "select-pane")
 		conf.Session = ses
 	}
 }

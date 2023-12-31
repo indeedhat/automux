@@ -1,4 +1,4 @@
-package main
+package tmux
 
 import (
 	"bufio"
@@ -7,13 +7,15 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/indeedhat/automux/internal/config"
 )
 
-// tmux is an alias function to make running subsequent tmux commands simpler and more readable
-func tmux(conf *Config, parts ...string) {
+// Cmd is an alias function to make running subsequent tmux commands simpler and more readable
+func Cmd(conf *config.Config, parts ...string) {
 	parts = append([]string{parts[0], "-t", conf.Session}, parts[1:]...)
 
-	if conf.debug {
+	if conf.Debug {
 		fmt.Println("tmux ", strings.Join(parts, " "))
 		return
 	}
@@ -22,8 +24,8 @@ func tmux(conf *Config, parts ...string) {
 	c.Run()
 }
 
-// sessionExists checks if there is already a tmux session with the provided session id/name
-func sessionExists(conf *Config) bool {
+// SessionExists checks if there is already a tmux session with the provided session id/name
+func SessionExists(conf *config.Config) bool {
 	c := exec.Command("tmux", "ls")
 	out, err := c.CombinedOutput()
 	if err != nil {
@@ -41,9 +43,9 @@ func sessionExists(conf *Config) bool {
 	return false
 }
 
-// awaitSession waits for the tmux session to become available before we start trying to manipulate it
-func awaitSession(c *Config) {
-	if c.debug {
+// AwaitSession waits for the tmux session to become available before we start trying to manipulate it
+func AwaitSession(c *config.Config) {
+	if c.Debug {
 		return
 	}
 
