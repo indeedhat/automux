@@ -13,6 +13,16 @@ cd() {
 }
 ```
 
+## Usage
+```
+automux -h
+Usage of automux:
+  -debug
+        print tmux commands rather than running them
+  -init
+        Init the automux config template in the current directory
+```
+
 ## Configure
 [See here](configs/example.automux.hcl)
 
