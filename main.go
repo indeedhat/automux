@@ -26,12 +26,10 @@ func main() {
 		return
 	}
 
-	c, err := config.Load(config.DefaultPath)
+	c, err := config.Load(config.DefaultPath, debug)
 	if err != nil {
 		log.Fatal("!! invalid automux config !!\n ", err)
 	}
-
-	c.Debug = debug
 
 	if err := cmd.TriggerCmd(c); err != nil {
 		log.Fatal(err)

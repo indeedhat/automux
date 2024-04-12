@@ -41,3 +41,28 @@ window "vim" {
         vertical = true
     }
 }
+
+# sub sessions will be opened in the background
+session "path/to/session_dir" {
+    # if a .automux.hcl file is found in the session dir then it will be loaded
+    # any config put in the session block will overwrite config found there
+
+    # session = "my-session"
+    # config = "./tmux.conf"
+    # single_session = false 
+
+    window "window_name" {
+        # if a window with the same name is found in the .autmux.hcl file then the two blocks will be
+        # merged with any values set here taking presedence
+
+        # exec = ""
+        # focus = false
+
+        spit {
+            # splits will be merged by index
+            # with any values set here taking presedence
+
+            # any aditional splits will be appended to the final window config
+        }
+    }
+}

@@ -12,20 +12,24 @@ import (
 )
 
 // Cmd is an alias function to make running subsequent tmux commands simpler and more readable
-func Cmd(conf *config.Config, parts ...string) {
-	parts = append([]string{parts[0], "-t", conf.Session}, parts[1:]...)
+func Cmd(session config.Session, parts ...string) {
+	parts = append([]string{parts[0], "-t", session.SessionId}, parts[1:]...)
 
-	if conf.Debug {
+	if session.Debug {
 		fmt.Println("tmux ", strings.Join(parts, " "))
 		return
 	}
 
 	c := exec.Command("tmux", parts...)
+	if session.Directory != "" {
+		c.Dir = session.Directory
+	}
+
 	c.Run()
 }
 
 // SessionExists checks if there is already a tmux session with the provided session id/name
-func SessionExists(conf *config.Config) bool {
+func SessionExists(session config.Session) bool {
 	c := exec.Command("tmux", "ls")
 	out, err := c.CombinedOutput()
 	if err != nil {
@@ -35,7 +39,7 @@ func SessionExists(conf *config.Config) bool {
 
 	for s.Scan() {
 		parts := strings.Split(s.Text(), ":")
-		if len(parts) > 0 && parts[0] == conf.Session {
+		if len(parts) > 0 && parts[0] == session.SessionId {
 			return true
 		}
 	}
@@ -44,12 +48,12 @@ func SessionExists(conf *config.Config) bool {
 }
 
 // AwaitSession waits for the tmux session to become available before we start trying to manipulate it
-func AwaitSession(c *config.Config) {
-	if c.Debug {
+func AwaitSession(session config.Session) {
+	if session.Debug {
 		return
 	}
 
-	ticker := time.NewTicker(50 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	for {
 		select {
 		case <-time.After(time.Second):
@@ -63,7 +67,7 @@ func AwaitSession(c *config.Config) {
 
 			s := bufio.NewScanner(bytes.NewReader(data))
 			for s.Scan() {
-				if strings.HasPrefix(s.Text(), c.Session) {
+				if strings.HasPrefix(s.Text(), session.SessionId) {
 					return
 				}
 			}
