@@ -36,7 +36,7 @@ func TriggerCmd(conf *config.Config) error {
 			fmt.Printf("Failed to start session %d: no session id set\n", i)
 			continue
 		}
-		if session.SingleSession != nil && *session.SingleSession {
+		if session.SingleSession != nil && !*session.SingleSession {
 			session.SessionId += time.Now().Format("_150405")
 		}
 		if tmux.SessionExists(session) {
