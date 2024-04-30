@@ -1,3 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/indeedhat/automux)](https://goreportcard.com/report/github.com/indeedhat/automux)
+[![codecov](https://codecov.io/gh/indeedhat/automux/graph/badge.svg?token=5M4H16EDWM)](https://codecov.io/gh/indeedhat/automux)
+
 # Automux
 Auto mux checks for a .automux.hcl on each cd and if one is found it will automatically run tmux with the layout provided by the config file.
 
