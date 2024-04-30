@@ -80,19 +80,19 @@ func mergeSplits(target, override []Split) []Split {
 			continue
 		}
 
-		final := target[i]
+		final := &target[i]
 
 		if split.Exec != nil {
-			final.Exec = split.Exec
+			(*final).Exec = split.Exec
 		}
 		if split.Vertical != nil {
-			final.Vertical = split.Vertical
+			(*final).Vertical = split.Vertical
 		}
 		if split.Size != nil {
-			final.Size = split.Size
+			(*final).Size = split.Size
 		}
 		if split.Focus != nil {
-			final.Focus = split.Focus
+			(*final).Focus = split.Focus
 		}
 	}
 
