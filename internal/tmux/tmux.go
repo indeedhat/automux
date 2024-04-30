@@ -54,9 +54,10 @@ func AwaitSession(session config.Session) {
 	}
 
 	ticker := time.NewTicker(10 * time.Millisecond)
+	timeout := time.After(time.Second)
 	for {
 		select {
-		case <-time.After(time.Second):
+		case <-timeout:
 			return
 		case <-ticker.C:
 			cmd := exec.Command("tmux", "ls")

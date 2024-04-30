@@ -99,28 +99,7 @@ func processPanels(session config.Session) {
 			tmux.Cmd(session, "send-keys", *window.Exec, "Enter")
 		}
 
-		for j, split := range window.Splits {
-			if split.Focus != nil && *split.Focus {
-				focus = fmt.Sprintf(":%d.%d", i, j)
-			}
-
-			// This looks backwards but it makes the splits open in the way i expect
-			orientation := "-v"
-			resize := "-y"
-			if split.Vertical != nil && *split.Vertical {
-				orientation = "-h"
-				resize = "-x"
-			}
-
-			tmux.Cmd(session, "split-window", orientation)
-
-			if split.Size != nil && *split.Size != 0 {
-				tmux.Cmd(session, "resize-pane", resize, strconv.Itoa(*split.Size)+"%")
-			}
-			if split.Exec != nil && *split.Exec != "" {
-				tmux.Cmd(session, "send-keys", *split.Exec, "Enter")
-			}
-		}
+		processSplits(window, session, &focus, i)
 
 		// stops the opening of programs from overwriting tab
 		tmux.Cmd(session, "rename-window", window.Title)
@@ -134,5 +113,31 @@ func processPanels(session config.Session) {
 		tmux.Cmd(session, "select-window")
 		tmux.Cmd(session, "select-pane")
 		session.SessionId = ses
+	}
+}
+
+// processSplits loops over the windows splits and adds them to the session
+func processSplits(window config.Window, session config.Session, focus *string, i int) {
+	for j, split := range window.Splits {
+		if split.Focus != nil && *split.Focus {
+			*focus = fmt.Sprintf(":%d.%d", i, j)
+		}
+
+		// This looks backwards but it makes the splits open in the way i expect
+		orientation := "-v"
+		resize := "-y"
+		if split.Vertical != nil && *split.Vertical {
+			orientation = "-h"
+			resize = "-x"
+		}
+
+		tmux.Cmd(session, "split-window", orientation)
+
+		if split.Size != nil && *split.Size != 0 {
+			tmux.Cmd(session, "resize-pane", resize, strconv.Itoa(*split.Size)+"%")
+		}
+		if split.Exec != nil && *split.Exec != "" {
+			tmux.Cmd(session, "send-keys", *split.Exec, "Enter")
+		}
 	}
 }
