@@ -1,6 +1,8 @@
 package tmux
 
 import (
+	"bytes"
+	"log"
 	"os/exec"
 	"testing"
 	"time"
@@ -9,6 +11,38 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestCmd(t *testing.T) {
+	single := true
+	s := config.Session{SessionId: "automux-test-session-cmd", Directory: "../", SingleSession: &single}
+
+	cmd := exec.Command("tmux", "new-session", "-d", "-s", s.SessionId)
+	require.Nil(t, cmd.Run())
+
+	time.Sleep(20 * time.Millisecond)
+	require.True(t, SessionExists(s))
+
+	Cmd(s, "kill-session")
+	assert.False(t, SessionExists(s))
+}
+
+func TestBadCmd(t *testing.T) {
+	s := config.Session{SessionId: "automux-test-session"}
+	Cmd(s, "bad session")
+
+	assert.False(t, SessionExists(s))
+}
+
+func TestCmdDebug(t *testing.T) {
+	var (
+		b bytes.Buffer
+		l = log.New(&b, "", 0)
+		s = config.Session{SessionId: "automux-test-session", Debug: true, L: l}
+	)
+	Cmd(s, "new-session")
+
+	assert.Equal(t, "tmux  new-session -t automux-test-session\n", b.String())
+}
 
 var sessionExistsChecks = []struct {
 	id       string
@@ -29,6 +63,25 @@ func TestSessionExists(t *testing.T) {
 		t.Run(check.id, func(t *testing.T) {
 			s.SessionId = check.id
 			require.Equal(t, check.expected, SessionExists(s), "session existis")
+		})
+	}
+
+	c = exec.Command("tmux", "kill-session", "-t", "automux-test-session")
+	require.Nil(t, c.Run(), "kill session")
+}
+
+// TestSessionExistsDebug checks both paths for session existance in debug mode
+// in debug mode it should always be false
+func TestSessionExistsDbeug(t *testing.T) {
+	s := config.Session{SessionId: "automux-test-session", Debug: true}
+
+	c := exec.Command("tmux", "new-session", "-d", "-s", s.SessionId)
+	require.Nil(t, c.Run(), "setup session")
+
+	for _, check := range sessionExistsChecks {
+		t.Run(check.id, func(t *testing.T) {
+			s.SessionId = check.id
+			require.False(t, SessionExists(s), "session existis")
 		})
 	}
 

@@ -3,6 +3,7 @@ package tmux
 import (
 	"bufio"
 	"bytes"
+	"log"
 	"os/exec"
 	"strings"
 	"time"
@@ -35,6 +36,7 @@ func SessionExists(session config.Session) bool {
 
 	c := exec.Command("tmux", "ls")
 	out, err := c.CombinedOutput()
+    log.Print(string(out))
 	if err != nil {
 		return false
 	}
