@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/indeedhat/automux/internal/config"
@@ -44,6 +46,7 @@ var triggerCmdConfig = &config.Config{
 				{
 					Title: "Editor",
 					Exec:  t_ptr("nvim"),
+					Focus: t_ptr(true),
 					Splits: []config.Split{
 						{
 							Vertical: t_ptr(true),
@@ -88,6 +91,16 @@ tmux  select-window -t sub-automux-trigger-config-sub:0.0
 tmux  select-pane -t sub-automux-trigger-config-sub:0.0
 `
 
+func TestTriggerCmdTmuxSet(t *testing.T) {
+	orig := os.Getenv("TMUX")
+	os.Setenv("TMUX", "1")
+	defer func() {
+		os.Setenv("TMUX", orig)
+	}()
+
+	assert.Nil(t, TriggerCmd(triggerCmdConfig), "TriggerCmd")
+}
+
 func TestTriggerCmdDebug(t *testing.T) {
 	os.Unsetenv("TMUX")
 
@@ -99,6 +112,30 @@ func TestTriggerCmdDebug(t *testing.T) {
 	assert.Equal(t, triggerCmdDebugText, b.String(), "Debug info")
 }
 
+func TestTriggerCmdMultiSession(t *testing.T) {
+	os.Unsetenv("TMUX")
+
+	var b bytes.Buffer
+	triggerCmdConfig.SingleSession = false
+	triggerCmdConfig.L = log.New(&b, "", 0)
+	triggerCmdConfig.Sessions[0].L = triggerCmdConfig.L
+
+	assert.Nil(t, TriggerCmd(triggerCmdConfig), "TriggerCmd")
+	// this is simpler than rebuilding the output data from a template with the current session suffix
+	assert.Equal(t, t_countLines(triggerCmdDebugText), t_countLines(b.String()), "Debug info")
+}
+
 func t_ptr[T any](val T) *T {
 	return &val
+}
+
+func t_countLines(in string) int {
+	var count int
+
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	for scanner.Scan() {
+		count++
+	}
+
+	return count
 }
