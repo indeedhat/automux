@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +26,7 @@ type Config struct {
 
 	// Cli args
 	Debug bool
+	L     *log.Logger
 }
 
 // AsSession converts the Config instance to a Session one
@@ -35,6 +37,7 @@ func (c *Config) AsSession() Session {
 		ConfigPath:    &c.ConfigPath,
 		Windows:       c.Windows,
 		Debug:         c.Debug,
+		L:             c.L,
 	}
 }
 
@@ -57,6 +60,7 @@ type Session struct {
 	Windows []Window `hcl:"window,block"`
 
 	Debug bool
+	L     *log.Logger
 }
 
 type Window struct {
@@ -82,7 +86,7 @@ type Split struct {
 }
 
 // Load loads the config from the given file path
-func Load(path string, debug bool) (*Config, error) {
+func Load(path string, logger *log.Logger, debug bool) (*Config, error) {
 	var c Config
 
 	data, err := os.ReadFile(path)
@@ -101,7 +105,7 @@ func Load(path string, debug bool) (*Config, error) {
 	var validSessions []Session
 	for _, session := range c.Sessions {
 		session.Debug = debug
-		sessionConf, err := Load(filepath.Join(session.Directory, ".automux.hcl"), debug)
+		sessionConf, err := Load(filepath.Join(session.Directory, ".automux.hcl"), logger, debug)
 		if err != nil {
 			if os.IsNotExist(err) {
 				validSessions = append(validSessions, session)

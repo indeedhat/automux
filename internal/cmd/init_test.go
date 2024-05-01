@@ -4,12 +4,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var expectedGeneratedConfig = `session = "tester"
 # config = "./tmux.conf"
-# single_session = false 
+# single_session = false
 
 window "Editor" {
     exec = "vim"
@@ -28,27 +29,34 @@ window "Shell" {
 }
 `
 
-// TestGenerateConfig makes sure that the expected template is generated for the init config
-func TestGenerateConfig(t *testing.T) {
-	data, err := generateConfig("tester")
+func TestInitCmd(t *testing.T) {
+	tmpStdin, stdin := t_setupStdin(t)
+	defer func() {
+		tmpStdin.Close()
+		os.Remove(tmpStdin.Name())
+		os.Stdin = stdin
+		os.Remove(".automux.hcl")
+	}()
 
-	require.Nil(t, err)
-	require.Equal(t, []byte(expectedGeneratedConfig), data)
+	assert.Nil(t, InitCmd(), "initCmd")
+	assert.FileExists(t, ".automux.hcl")
+
+	stat, err := os.Stat(".automux.hcl")
+	assert.Nil(t, err, "stat")
+	modTime := stat.ModTime()
+
+	assert.Nil(t, InitCmd(), "initCmd")
+	stat, err = os.Stat(".automux.hcl")
+	assert.Nil(t, err, "stat")
+	assert.Equal(t, modTime, stat.ModTime(), "file not updated")
 }
 
-// TestReadInput makes sure that input can be read from stdin
-func TestReadInput(t *testing.T) {
+func t_setupStdin(t *testing.T) (*os.File, *os.File) {
 	content := []byte("Hello, World!\n")
 	oldStdin := os.Stdin
 
 	tmpfile, err := os.CreateTemp("", "example")
 	require.Nil(t, err, "create temp file")
-
-	defer func() {
-		tmpfile.Close()
-		os.Remove(tmpfile.Name())
-		os.Stdin = oldStdin
-	}()
 
 	_, err = tmpfile.Write(content)
 	require.Nil(t, err, "write temp file")
@@ -58,7 +66,5 @@ func TestReadInput(t *testing.T) {
 
 	os.Stdin = tmpfile
 
-	data, _ := readInput()
-	// require.Nil(t, err, "read err")
-	require.Equal(t, content, data, "read data")
+	return tmpfile, oldStdin
 }

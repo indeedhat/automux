@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/indeedhat/automux/internal/cmd"
@@ -26,7 +28,12 @@ func main() {
 		return
 	}
 
-	c, err := config.Load(config.DefaultPath, debug)
+	var (
+		b bytes.Buffer
+		l = log.New(&b, "", 0)
+	)
+
+	c, err := config.Load(config.DefaultPath, l, debug)
 	if err != nil {
 		log.Fatal("!! invalid automux config !!\n ", err)
 	}
@@ -34,4 +41,6 @@ func main() {
 	if err := cmd.TriggerCmd(c); err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Print(b.String())
 }

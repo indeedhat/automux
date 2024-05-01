@@ -3,7 +3,6 @@ package tmux
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os/exec"
 	"strings"
 	"time"
@@ -16,7 +15,7 @@ func Cmd(session config.Session, parts ...string) {
 	parts = append([]string{parts[0], "-t", session.SessionId}, parts[1:]...)
 
 	if session.Debug {
-		fmt.Println("tmux ", strings.Join(parts, " "))
+		session.L.Println("tmux ", strings.Join(parts, " "))
 		return
 	}
 
@@ -30,6 +29,10 @@ func Cmd(session config.Session, parts ...string) {
 
 // SessionExists checks if there is already a tmux session with the provided session id/name
 func SessionExists(session config.Session) bool {
+	if session.Debug {
+		return false
+	}
+
 	c := exec.Command("tmux", "ls")
 	out, err := c.CombinedOutput()
 	if err != nil {

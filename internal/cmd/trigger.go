@@ -33,7 +33,7 @@ func TriggerCmd(conf *config.Config) error {
 
 	for i, session := range conf.Sessions {
 		if session.SessionId == "" {
-			fmt.Printf("Failed to start session %d: no session id set\n", i)
+			conf.L.Printf("Failed to start session %d: no session id set\n", i)
 			continue
 		}
 		if session.SingleSession != nil && !*session.SingleSession {
@@ -70,7 +70,7 @@ func createSession(session config.Session) {
 	}
 
 	if session.Debug {
-		fmt.Println(strings.Join(cmd.Args, " "))
+		session.L.Println(strings.Join(cmd.Args, " "))
 	} else {
 		cmd.Run()
 	}

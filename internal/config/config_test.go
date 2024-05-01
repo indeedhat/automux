@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"log"
 	"os"
 	"testing"
@@ -46,13 +47,16 @@ var loadChecks = []struct {
 func TestLoad(t *testing.T) {
 	testDir, err := os.Getwd()
 	require.Nil(t, err)
+	var (
+		b bytes.Buffer
+		l = log.New(&b, "", 0)
+	)
 
 	for _, check := range loadChecks {
 		t.Run(check.name, func(t *testing.T) {
 			require.Nil(t, os.Chdir(check.path))
-			log.Print(os.Getwd())
 
-			c, err := Load(".automux.hcl", check.debug)
+			c, err := Load(".automux.hcl", l, check.debug)
 			if !check.shouldSucceed {
 				require.NotNil(t, err)
 				return

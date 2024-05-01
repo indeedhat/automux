@@ -1,0 +1,104 @@
+package cmd
+
+import (
+	"bytes"
+	"log"
+	"os"
+	"testing"
+
+	"github.com/indeedhat/automux/internal/config"
+	"github.com/stretchr/testify/assert"
+)
+
+var triggerCmdConfig = &config.Config{
+	SessionId:     "automux-trigger-config",
+	SingleSession: true,
+	ConfigPath:    ".automux.hcl",
+	Windows: []config.Window{
+		{
+			Title: "Editor",
+			Exec:  t_ptr("nvim"),
+			Splits: []config.Split{
+				{
+					Vertical: t_ptr(true),
+					Exec:     t_ptr("htop"),
+					Size:     t_ptr(20),
+					Focus:    t_ptr(true),
+				},
+				{
+					Size: t_ptr(60),
+				},
+			},
+		},
+		{
+			Title: "Extras",
+		},
+	},
+	Debug: true,
+	Sessions: []config.Session{
+		{
+			Debug:     true,
+			Directory: "../../_examples/single_session",
+			SessionId: "sub-automux-trigger-config-sub",
+			Windows: []config.Window{
+				{
+					Title: "Editor",
+					Exec:  t_ptr("nvim"),
+					Splits: []config.Split{
+						{
+							Vertical: t_ptr(true),
+							Exec:     t_ptr("htop"),
+							Size:     t_ptr(20),
+							Focus:    t_ptr(true),
+						},
+						{
+							Size: t_ptr(60),
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
+var triggerCmdDebugText = `tmux new-session -d -s automux-trigger-config -f .automux.hcl
+tmux  rename-window -t automux-trigger-config Editor
+tmux  send-keys -t automux-trigger-config nvim Enter
+tmux  split-window -t automux-trigger-config -h
+tmux  resize-pane -t automux-trigger-config -x 20%
+tmux  send-keys -t automux-trigger-config htop Enter
+tmux  split-window -t automux-trigger-config -v
+tmux  resize-pane -t automux-trigger-config -y 60%
+tmux  rename-window -t automux-trigger-config Editor
+tmux  new-window -t automux-trigger-config
+tmux  rename-window -t automux-trigger-config Extras
+tmux  rename-window -t automux-trigger-config Extras
+tmux  select-window -t automux-trigger-config:0.0
+tmux  select-pane -t automux-trigger-config:0.0
+tmux new-session -d -s sub-automux-trigger-config-sub
+tmux  rename-window -t sub-automux-trigger-config-sub Editor
+tmux  send-keys -t sub-automux-trigger-config-sub nvim Enter
+tmux  split-window -t sub-automux-trigger-config-sub -h
+tmux  resize-pane -t sub-automux-trigger-config-sub -x 20%
+tmux  send-keys -t sub-automux-trigger-config-sub htop Enter
+tmux  split-window -t sub-automux-trigger-config-sub -v
+tmux  resize-pane -t sub-automux-trigger-config-sub -y 60%
+tmux  rename-window -t sub-automux-trigger-config-sub Editor
+tmux  select-window -t sub-automux-trigger-config-sub:0.0
+tmux  select-pane -t sub-automux-trigger-config-sub:0.0
+`
+
+func TestTriggerCmdDebug(t *testing.T) {
+	os.Unsetenv("TMUX")
+
+	var b bytes.Buffer
+	triggerCmdConfig.L = log.New(&b, "", 0)
+	triggerCmdConfig.Sessions[0].L = triggerCmdConfig.L
+
+	assert.Nil(t, TriggerCmd(triggerCmdConfig), "TriggerCmd")
+	assert.Equal(t, triggerCmdDebugText, b.String(), "Debug info")
+}
+
+func t_ptr[T any](val T) *T {
+	return &val
+}
