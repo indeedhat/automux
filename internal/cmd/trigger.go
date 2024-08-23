@@ -15,7 +15,7 @@ import (
 // TriggerCmd is the handler for triggering the auto mux start procedure
 func TriggerCmd(conf *config.Config) error {
 	// if we are already in a tmux session then there is nothing to do
-	if os.Getenv("TMUX") != "" {
+	if os.Getenv("TMUX") != "" && !conf.Detached {
 		return nil
 	}
 
@@ -46,21 +46,26 @@ func TriggerCmd(conf *config.Config) error {
 		createSession(session)
 	}
 
-	if !conf.Debug {
+	if !conf.Debug && !conf.Detached {
 		cmd := exec.Command("tmux", "attach", "-t", conf.SessionId)
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin
 		cmd.Stderr = os.Stderr
 		cmd.Run()
-		// TODO: find a way to disconnect from the session
 	}
+
 	return nil
 }
 
 // createSession creates a new tmux session, wait for the server to start it then
 // create the sessions layout based on the provided config
 func createSession(session config.Session) {
-	cmd := exec.Command("tmux", "new-session", "-d", "-s", session.SessionId)
+	args := []string{"new-session", "-d", "-s", session.SessionId}
+	if session.Directory != "" {
+		args = append(args, "-c", session.Directory)
+	}
+
+	cmd := exec.Command("tmux", args...)
 	if session.ConfigPath != nil && *session.ConfigPath != "" {
 		cmd.Args = append(cmd.Args, "-f", *session.ConfigPath)
 	}

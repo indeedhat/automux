@@ -78,7 +78,7 @@ tmux  rename-window -t automux-trigger-config Extras
 tmux  rename-window -t automux-trigger-config Extras
 tmux  select-window -t automux-trigger-config:0.0
 tmux  select-pane -t automux-trigger-config:0.0
-tmux new-session -d -s sub-automux-trigger-config-sub
+tmux new-session -d -s sub-automux-trigger-config-sub -c ../../_examples/single_session
 tmux  rename-window -t sub-automux-trigger-config-sub Editor
 tmux  send-keys -t sub-automux-trigger-config-sub nvim Enter
 tmux  split-window -t sub-automux-trigger-config-sub -h

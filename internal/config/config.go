@@ -13,25 +13,30 @@ import (
 const DefaultPath = ".automux.hcl"
 
 type Config struct {
+	// Used to store the relative directory for the config (if the config is not loaded from the current directory)
+	Directory string
 	// Session id and title for the tmux session
 	SessionId string `hcl:"session"`
 	// SingleSession when set automux will not run if there is already a tmux session with the
 	// provided {session}
-	SingleSession bool   `hcl:"single_session,optional"`
-	ConfigPath    string `hcl:"config,optional"`
+	SingleSession bool `hcl:"single_session,optional"`
+	// ConnfigPath for the tmux.conf file to use on this session
+	ConfigPath string `hcl:"config,optional"`
 	// Windows contains each of the tmux windo defs
 	Windows []Window `hcl:"window,block"`
 	// Sessions contains definitions for background sessions to open up
 	Sessions []Session `hcl:"session,block"`
 
 	// Cli args
-	Debug bool
-	L     *log.Logger
+	Detached bool
+	Debug    bool
+	L        *log.Logger
 }
 
 // AsSession converts the Config instance to a Session one
 func (c *Config) AsSession() Session {
 	return Session{
+		Directory:     c.Directory,
 		SessionId:     c.SessionId,
 		SingleSession: &c.SingleSession,
 		ConfigPath:    &c.ConfigPath,
@@ -86,7 +91,7 @@ type Split struct {
 }
 
 // Load loads the config from the given file path
-func Load(path string, logger *log.Logger, debug bool) (*Config, error) {
+func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error) {
 	var c Config
 
 	data, err := os.ReadFile(path)
@@ -101,11 +106,17 @@ func Load(path string, logger *log.Logger, debug bool) (*Config, error) {
 	// stop spaces from breaking the tmux commands
 	c.SessionId = strings.ReplaceAll(c.SessionId, " ", "-")
 	c.Debug = debug
+	c.Detached = detached
+	c.L = logger
+
+	if path != DefaultPath {
+		c.Directory = strings.TrimSuffix(path, DefaultPath)
+	}
 
 	var validSessions []Session
 	for _, session := range c.Sessions {
 		session.Debug = debug
-		sessionConf, err := Load(filepath.Join(session.Directory, ".automux.hcl"), logger, debug)
+		sessionConf, err := Load(filepath.Join(session.Directory, ".automux.hcl"), logger, debug, detached)
 		if err != nil {
 			if os.IsNotExist(err) {
 				validSessions = append(validSessions, session)
