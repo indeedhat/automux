@@ -12,8 +12,8 @@ func mergeSessions(target, override Session) Session {
 	if override.SessionId != "" {
 		target.SessionId = override.SessionId
 	}
-	if override.SingleSession != nil {
-		target.SingleSession = override.SingleSession
+	if override.AttachExisting != nil {
+		target.AttachExisting = override.AttachExisting
 	}
 
 	target.Windows = mergeWindows(target.Windows, override.Windows)

@@ -13,8 +13,7 @@ import (
 )
 
 func TestCmd(t *testing.T) {
-	single := true
-	s := config.Session{SessionId: "automux-test-session-cmd", Directory: "../", SingleSession: &single}
+	s := config.Session{SessionId: "automux-test-session-cmd", Directory: "../"}
 
 	cmd := exec.Command("tmux", "new-session", "-d", "-s", s.SessionId)
 	require.Nil(t, cmd.Run())

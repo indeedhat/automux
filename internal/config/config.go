@@ -17,9 +17,8 @@ type Config struct {
 	Directory string
 	// Session id and title for the tmux session
 	SessionId string `hcl:"session"`
-	// SingleSession when set automux will not run if there is already a tmux session with the
-	// provided {session}
-	SingleSession bool `hcl:"single_session,optional"`
+	// AttachExisting will cause automux to re attach to any exiting session for thet directory
+	AttachExisting bool `hcl:"attach_existing,optional"`
 	// ConnfigPath for the tmux.conf file to use on this session
 	ConfigPath string `hcl:"config,optional"`
 	// Windows contains each of the tmux windo defs
@@ -36,13 +35,13 @@ type Config struct {
 // AsSession converts the Config instance to a Session one
 func (c *Config) AsSession() Session {
 	return Session{
-		Directory:     c.Directory,
-		SessionId:     c.SessionId,
-		SingleSession: &c.SingleSession,
-		ConfigPath:    &c.ConfigPath,
-		Windows:       c.Windows,
-		Debug:         c.Debug,
-		L:             c.L,
+		Directory:      c.Directory,
+		SessionId:      c.SessionId,
+		AttachExisting: &c.AttachExisting,
+		ConfigPath:     &c.ConfigPath,
+		Windows:        c.Windows,
+		Debug:          c.Debug,
+		L:              c.L,
 	}
 }
 
@@ -57,10 +56,9 @@ type Session struct {
 	//
 	// Session id and title for the tmux session
 	SessionId string `hcl:"session,optional"`
-	// SingleSession when set automux will not run if there is already a tmux session with the
-	// provided {session}
-	SingleSession *bool   `hcl:"single_session,optional"`
-	ConfigPath    *string `hcl:"config,optional"`
+	// AttachExisting will cause automux to re attach to any exiting session for thet directory
+	AttachExisting *bool   `hcl:"attach_existing,optional"`
+	ConfigPath     *string `hcl:"config,optional"`
 	// Windows contains each of the tmux windo defs
 	Windows []Window `hcl:"window,block"`
 
@@ -92,7 +90,9 @@ type Split struct {
 
 // Load loads the config from the given file path
 func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error) {
-	c := Config{SingleSession: true}
+	c := Config{
+		AttachExisting: true,
+	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {

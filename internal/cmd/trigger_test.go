@@ -13,9 +13,8 @@ import (
 )
 
 var triggerCmdConfig = &config.Config{
-	SessionId:     "automux-trigger-config",
-	SingleSession: true,
-	ConfigPath:    ".automux.hcl",
+	SessionId:  "automux-trigger-config",
+	ConfigPath: ".automux.hcl",
 	Windows: []config.Window{
 		{
 			Title: "Editor",
@@ -116,7 +115,6 @@ func TestTriggerCmdMultiSession(t *testing.T) {
 	os.Unsetenv("TMUX")
 
 	var b bytes.Buffer
-	triggerCmdConfig.SingleSession = false
 	triggerCmdConfig.L = log.New(&b, "", 0)
 	triggerCmdConfig.Sessions[0].L = triggerCmdConfig.L
 

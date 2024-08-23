@@ -5,8 +5,9 @@ session = "my-session"
 # config lets you set a custom tmux config for this directory
 config = "./tmux.conf"
 
-# when set automux will not run if there is already a tmux session with the provided {session}
-single_session = false 
+# when set automux will open tmux and attach to the existing session for the directory (if one exists)
+# when not set automux will do nothing if a session exists
+attach_existing = false # default true
 
 # the first window block will setup the original window/tab
 # each additional block will add a new window/tab
@@ -49,7 +50,6 @@ session "path/to/session_dir" {
 
     # session = "my-session"
     # config = "./tmux.conf"
-    # single_session = false 
 
     window "window_name" {
         # if a window with the same name is found in the .autmux.hcl file then the two blocks will be

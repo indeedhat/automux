@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/indeedhat/automux/internal/config"
 	"github.com/indeedhat/automux/internal/tmux"
@@ -19,13 +18,12 @@ func TriggerCmd(conf *config.Config) error {
 		return nil
 	}
 
-	if !conf.SingleSession {
-		conf.SessionId += time.Now().Format("_150405")
-	}
-
 	masterSession := conf.AsSession()
 
 	if tmux.SessionExists(masterSession) {
+		if conf.AttachExisting {
+			goto attach
+		}
 		return nil
 	}
 
@@ -36,9 +34,6 @@ func TriggerCmd(conf *config.Config) error {
 			conf.L.Printf("Failed to start session %d: no session id set\n", i)
 			continue
 		}
-		if session.SingleSession != nil && !*session.SingleSession {
-			session.SessionId += time.Now().Format("_150405")
-		}
 		if tmux.SessionExists(session) {
 			continue
 		}
@@ -46,6 +41,7 @@ func TriggerCmd(conf *config.Config) error {
 		createSession(session)
 	}
 
+attach:
 	if !conf.Debug && !conf.Detached {
 		cmd := exec.Command("tmux", "attach", "-t", conf.SessionId)
 		cmd.Stdout = os.Stdout

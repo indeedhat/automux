@@ -10,7 +10,6 @@ import (
 
 var expectedGeneratedConfig = `session = "tester"
 # config = "./tmux.conf"
-# single_session = false
 
 window "Editor" {
     exec = "vim"

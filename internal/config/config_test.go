@@ -12,9 +12,8 @@ import (
 // TestConfigAsSession ensures that the correct values are carried over when calling AsSession on &Config
 func TestConfigAsSession(t *testing.T) {
 	c := &Config{
-		SessionId:     "automux-test-session",
-		SingleSession: true,
-		ConfigPath:    "some/fake/path/.automux",
+		SessionId:  "automux-test-session",
+		ConfigPath: "some/fake/path/.automux",
 		Windows: []Window{
 			{Title: "automux-test-title"},
 		},
@@ -24,7 +23,6 @@ func TestConfigAsSession(t *testing.T) {
 	s := c.AsSession()
 
 	require.Equal(t, c.SessionId, s.SessionId)
-	require.Equal(t, c.SingleSession, *s.SingleSession)
 	require.Equal(t, c.ConfigPath, *s.ConfigPath)
 	require.Equal(t, c.Windows[0].Title, s.Windows[0].Title)
 	require.Equal(t, c.Debug, s.Debug)
