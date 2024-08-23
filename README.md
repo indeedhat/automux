@@ -41,11 +41,16 @@ be focused from a single terminal window at will.
 ## Usage
 ```
 automux -h
+automux [flags] [path]
 Usage of automux:
+  -d    Run the automux session detached
+        This will allow you to start an automux session from another session
   -debug
         print tmux commands rather than running them
   -init
         Init the automux config template in the current directory
+  -print-name
+        Print the session name if the target directory is a automux directory
 ```
 
 ## Configure
