@@ -92,7 +92,7 @@ type Split struct {
 
 // Load loads the config from the given file path
 func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error) {
-	var c Config
+	c := Config{SingleSession: true}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
