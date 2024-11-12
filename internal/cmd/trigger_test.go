@@ -54,7 +54,8 @@ var triggerCmdConfig = &config.Config{
 							Focus:    t_ptr(true),
 						},
 						{
-							Size: t_ptr(60),
+							Size:      t_ptr(60),
+							Directory: t_ptr("sub/"),
 						},
 					},
 				},
@@ -83,7 +84,7 @@ tmux  send-keys -t sub-automux-trigger-config-sub nvim Enter
 tmux  split-window -t sub-automux-trigger-config-sub -h
 tmux  resize-pane -t sub-automux-trigger-config-sub -x 20%
 tmux  send-keys -t sub-automux-trigger-config-sub htop Enter
-tmux  split-window -t sub-automux-trigger-config-sub -v
+tmux  split-window -t sub-automux-trigger-config-sub -v -c sub/
 tmux  resize-pane -t sub-automux-trigger-config-sub -y 60%
 tmux  rename-window -t sub-automux-trigger-config-sub Editor
 tmux  select-window -t sub-automux-trigger-config-sub:0.0

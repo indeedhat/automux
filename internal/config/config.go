@@ -86,6 +86,8 @@ type Split struct {
 	Size *int `hcl:"size,optional"`
 	// Focus sets the focus to this split after setup is done
 	Focus *bool `hcl:"focus,optional"`
+	// Sub directory to open the split in
+	Directory *string `hcl:"dir,optional"`
 }
 
 // Load loads the config from the given file path

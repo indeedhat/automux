@@ -94,6 +94,9 @@ func mergeSplits(target, override []Split) []Split {
 		if split.Focus != nil {
 			(*final).Focus = split.Focus
 		}
+		if split.Directory != nil {
+			(*final).Directory = split.Directory
+		}
 	}
 
 	return append(merged, extras...)

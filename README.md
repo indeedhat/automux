@@ -85,6 +85,9 @@ window "window/tab title" {
         # NOTE: the size is set at create time so will work fine for simple layouts but may cause issues
         #       trying to create more complex ones
         size = 30
+
+        # The sub directory to open the split in
+        dir = "sub_dir/"
     }
 }
 

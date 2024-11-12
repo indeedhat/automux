@@ -79,43 +79,43 @@ var splitMergeCases = []struct {
 }{
 	{
 		"no-override",
-		[]Split{{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)}},
+		[]Split{{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), nil}},
 		[]Split{{}},
-		[]Split{{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)}},
+		[]Split{{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), nil}},
 	},
 	{
 		"full-override",
-		[]Split{{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)}},
-		[]Split{{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true)}},
-		[]Split{{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true)}},
+		[]Split{{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), nil}},
+		[]Split{{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true), nil}},
+		[]Split{{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true), nil}},
 	},
 	{
 		"multi-splits",
 		[]Split{
-			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)},
-			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)},
+			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), nil},
+			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), nil},
 		},
 		[]Split{
-			{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true)},
+			{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true), nil},
 			{},
 		},
 		[]Split{
-			{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true)},
-			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)},
+			{t_ptr(false), t_ptr("vim"), t_ptr(20), t_ptr(true), nil},
+			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), nil},
 		},
 	},
 	{
 		"extra-splits",
 		[]Split{
-			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)},
+			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), t_ptr("sub/")},
 		},
 		[]Split{
 			{},
-			{t_ptr(true), t_ptr("vim"), t_ptr(15), t_ptr(false)},
+			{t_ptr(true), t_ptr("vim"), t_ptr(15), t_ptr(false), nil},
 		},
 		[]Split{
-			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false)},
-			{t_ptr(true), t_ptr("vim"), t_ptr(15), t_ptr(false)},
+			{t_ptr(true), t_ptr("nvim"), t_ptr(10), t_ptr(false), t_ptr("sub/")},
+			{t_ptr(true), t_ptr("vim"), t_ptr(15), t_ptr(false), nil},
 		},
 	},
 }

@@ -132,7 +132,12 @@ func processSplits(window config.Window, session config.Session, focus *string, 
 			resize = "-x"
 		}
 
-		tmux.Cmd(session, "split-window", orientation)
+		splitArgs := []string{"split-window", orientation}
+		if split.Directory != nil && *split.Directory != "" {
+			splitArgs = append(splitArgs, "-c", *split.Directory)
+		}
+
+		tmux.Cmd(session, splitArgs...)
 
 		if split.Size != nil && *split.Size != 0 {
 			tmux.Cmd(session, "resize-pane", resize, strconv.Itoa(*split.Size)+"%")
