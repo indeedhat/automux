@@ -108,7 +108,7 @@ tmux  rename-window -t sub-automux-trigger-config-sub Editor
 tmux  new-window -t sub-automux-trigger-config-sub -c window_sub/
 tmux  rename-window -t sub-automux-trigger-config-sub Editor
 tmux  send-keys -t sub-automux-trigger-config-sub nvim Enter
-tmux  split-window -t sub-automux-trigger-config-sub -h
+tmux  split-window -t sub-automux-trigger-config-sub -h -c window_sub/
 tmux  resize-pane -t sub-automux-trigger-config-sub -x 20%
 tmux  send-keys -t sub-automux-trigger-config-sub htop Enter
 tmux  split-window -t sub-automux-trigger-config-sub -v -c window_sub/sub

@@ -137,11 +137,16 @@ func processSplits(window config.Window, session config.Session, focus *string, 
 			resize = "-x"
 		}
 
+		if window.Directory != nil && *window.Directory != "" {
+			if split.Directory != nil {
+				*split.Directory = path.Join(*window.Directory, *split.Directory)
+			} else {
+				split.Directory = window.Directory
+			}
+		}
+
 		splitArgs := []string{"split-window", orientation}
 		if split.Directory != nil && *split.Directory != "" {
-			if window.Directory != nil && *window.Directory != "" {
-				*split.Directory = path.Join(*window.Directory, *split.Directory)
-			}
 			splitArgs = append(splitArgs, "-c", *split.Directory)
 		}
 
