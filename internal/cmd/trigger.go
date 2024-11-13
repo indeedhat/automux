@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 
@@ -90,7 +91,11 @@ func processPanels(session config.Session) {
 		}
 
 		if i != 0 {
-			tmux.Cmd(session, "new-window")
+			if window.Directory != nil && *window.Directory != "" {
+				tmux.Cmd(session, "new-window", "-c", *window.Directory)
+			} else {
+				tmux.Cmd(session, "new-window")
+			}
 		}
 
 		// renaming the window for some reasonstops issues with blank splits
@@ -134,6 +139,9 @@ func processSplits(window config.Window, session config.Session, focus *string, 
 
 		splitArgs := []string{"split-window", orientation}
 		if split.Directory != nil && *split.Directory != "" {
+			if window.Directory != nil && *window.Directory != "" {
+				*split.Directory = path.Join(*window.Directory, *split.Directory)
+			}
 			splitArgs = append(splitArgs, "-c", *split.Directory)
 		}
 

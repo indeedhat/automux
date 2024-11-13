@@ -44,21 +44,24 @@ var windowMergeCases = []struct {
 }{
 	{
 		"no-override",
-		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil}},
+		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil, nil}},
 		[]Window{{Title: "win-1"}},
-		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil}},
+		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil, nil}},
 	},
 	{
 		"no-override",
-		[]Window{{"win-2", t_ptr("nvim"), t_ptr(true), nil}},
-		[]Window{{"win-2", t_ptr("vim"), t_ptr(false), []Split{{}}}},
-		[]Window{{"win-2", t_ptr("vim"), t_ptr(false), []Split{{}}}},
+		[]Window{{"win-2", t_ptr("nvim"), t_ptr(true), nil, nil}},
+		[]Window{{"win-2", t_ptr("vim"), t_ptr(false), t_ptr("sub/"), []Split{{}}}},
+		[]Window{{"win-2", t_ptr("vim"), t_ptr(false), t_ptr("sub/"), []Split{{}}}},
 	},
 	{
 		"multi-windows",
-		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil}},
-		[]Window{{Title: "win-1"}, {"win-2", t_ptr("vim"), t_ptr(false), nil}},
-		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil}, {"win-2", t_ptr("vim"), t_ptr(false), nil}},
+		[]Window{{"win-1", t_ptr("nvim"), t_ptr(true), nil, nil}},
+		[]Window{{Title: "win-1"}, {"win-2", t_ptr("vim"), t_ptr(false), nil, nil}},
+		[]Window{
+			{"win-1", t_ptr("nvim"), t_ptr(true), nil, nil},
+			{"win-2", t_ptr("vim"), t_ptr(false), nil, nil},
+		},
 	},
 }
 

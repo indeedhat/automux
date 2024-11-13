@@ -73,6 +73,8 @@ type Window struct {
 	Exec *string `hcl:"exec,optional"`
 	// Focus sets the focus to this window after setup is done
 	Focus *bool `hcl:"focus,optional"`
+	// Sub directory to open the split in
+	Directory *string `hcl:"dir,optional"`
 	// Splits contains any extra splits to be opened in this window/tab
 	Splits []Split `hcl:"split,block"`
 }

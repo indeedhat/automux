@@ -47,6 +47,9 @@ func mergeWindows(target, override []Window) []Window {
 			if window.Focus != nil {
 				final.Focus = window.Focus
 			}
+			if window.Directory != nil {
+				final.Directory = window.Directory
+			}
 
 			final.Splits = mergeSplits(final.Splits, window.Splits)
 

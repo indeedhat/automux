@@ -59,6 +59,24 @@ var triggerCmdConfig = &config.Config{
 						},
 					},
 				},
+				{
+					Title:     "Editor",
+					Exec:      t_ptr("nvim"),
+					Focus:     t_ptr(true),
+					Directory: t_ptr("window_sub/"),
+					Splits: []config.Split{
+						{
+							Vertical: t_ptr(true),
+							Exec:     t_ptr("htop"),
+							Size:     t_ptr(20),
+							Focus:    t_ptr(true),
+						},
+						{
+							Size:      t_ptr(60),
+							Directory: t_ptr("sub/"),
+						},
+					},
+				},
 			},
 		},
 	},
@@ -87,8 +105,17 @@ tmux  send-keys -t sub-automux-trigger-config-sub htop Enter
 tmux  split-window -t sub-automux-trigger-config-sub -v -c sub/
 tmux  resize-pane -t sub-automux-trigger-config-sub -y 60%
 tmux  rename-window -t sub-automux-trigger-config-sub Editor
-tmux  select-window -t sub-automux-trigger-config-sub:0.0
-tmux  select-pane -t sub-automux-trigger-config-sub:0.0
+tmux  new-window -t sub-automux-trigger-config-sub -c window_sub/
+tmux  rename-window -t sub-automux-trigger-config-sub Editor
+tmux  send-keys -t sub-automux-trigger-config-sub nvim Enter
+tmux  split-window -t sub-automux-trigger-config-sub -h
+tmux  resize-pane -t sub-automux-trigger-config-sub -x 20%
+tmux  send-keys -t sub-automux-trigger-config-sub htop Enter
+tmux  split-window -t sub-automux-trigger-config-sub -v -c window_sub/sub
+tmux  resize-pane -t sub-automux-trigger-config-sub -y 60%
+tmux  rename-window -t sub-automux-trigger-config-sub Editor
+tmux  select-window -t sub-automux-trigger-config-sub:1.0
+tmux  select-pane -t sub-automux-trigger-config-sub:1.0
 `
 
 func TestTriggerCmdTmuxSet(t *testing.T) {

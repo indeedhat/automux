@@ -26,12 +26,14 @@ cd() {
 - can give names to tabs
 - can auto run command on open
 - specific windows can be focused on open
+- can be given a sub directory to open in
 
 ### Splits
 - windows can have one or more splits
 - each split can be set to desired size
 - splits can each run a command on open
 - specific splits can be focused on open
+- can be given a sub directory to open in, this will always be relative to the base session, not the window the split is defined within
 
 ### Background Sessions
 When opening the main automux session you can optionally open one or more
@@ -75,6 +77,9 @@ window "window/tab title" {
     # has focus = true
     focus = true
 
+    # The sub directory to open the window in
+    dir = "sub_dir/"
+
     split {
         vertical = true
         exec = "cmd_to_run_in_split"
@@ -86,7 +91,7 @@ window "window/tab title" {
         #       trying to create more complex ones
         size = 30
 
-        # The sub directory to open the split in
+        # The sub directory to open the split in (relative to the containing window)
         dir = "sub_dir/"
     }
 }
@@ -126,7 +131,3 @@ session "path/to/session_dir" {
     }
 }
 ```
-
-## TODO
-- [ ] find a way to detach the session from the go app so it can shutdown without killing the sessien
-- [x] have a way to auto focus a given split/window on load
