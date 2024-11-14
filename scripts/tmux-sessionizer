@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Taken from ThePrimeagen's dotfiles and updated to work with automux
+#
+# Depends:
+# - automux
+# - fzf
+#
+# Usage:
+# Copy the script to somewhere in your path, make it executable and run it
+# ```
+# cp scripts/tmux-sessionizer ~/.local/sbin
+# chmod u+x ~/.local/sbin/tmux-sessionizer
+# tmux-sessionizer
+# ```
+#
+# My tmux binding:
+# bind-key T run 'tmux neww ~/.local/sbin/tmux-sessionizer'
+
+# NB: this fixes some bizzar bug where $TERM doesn't get set in the session and i can't be bothered
+#     to work out the proper issue #monkey-patch
+export TERM=xterm-256color
+
+if [[ $# -eq 1 ]]; then
+    selected=$1
+else
+    # Replace the folliwing find command with the directories you want to be scanned
+    selected=$(find ~/projects  ~/projects/indeedhat -mindepth 1 -maxdepth 1 -type d | fzf)
+fi
+
+if [[ -z $selected ]]; then
+    exit 0
+fi
+
+tmux_running=$(pgrep tmux)
+use_automux=1
+selected_name=$(automux -print-name "$selected/.automux.hcl" | tr . _)
+echo $selected_name
+if [[ -z $selected_name ]]; then
+    unset use_automux
+    selected_name=$(basename "$selected" | tr . _)
+fi
+
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    if [[ -z $use_automux ]]; then
+        tmux new-session -s $selected_name -c $selected
+    else
+        automux $selected/.automux.hcl
+    fi
+
+    exit 0
+fi
+
+if ! tmux has-session -t=$selected_name 2> /dev/null; then
+    if [[ -z $use_automux ]]; then
+        tmux new-session -ds $selected_name -c $selected
+    else
+        automux -d "$selected/.automux.hcl"
+    fi
+fi
+
+if [[ -z $TMUX ]]; then
+    tmux attach -t="$selected_name"
+else
+    tmux switch-client -t="$selected_name"
+fi
