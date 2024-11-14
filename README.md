@@ -16,7 +16,16 @@ go install github.com/indeedhat/automux@latest
 # if you would like automux to run on cd without having to be manually called:
 # add the following function to your .bashrc (or whatever your shells rc file is)
 cd() {
-    builtin cd "$@" && automux 
+    builtin cd "$@" && automux
+}
+
+# Another function i have found useful is to use :qa to close kill the entire tmux session
+:qa() {
+    if [ -n "$TMUX" ]; then
+        tmux kill-session
+    else
+        exit
+    fi
 }
 ```
 
