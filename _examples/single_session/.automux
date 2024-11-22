@@ -13,3 +13,5 @@ window "System Monitor" {
         vertical = false
     }
 }
+
+# vi: ft=hcl
