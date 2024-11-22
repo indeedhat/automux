@@ -15,15 +15,15 @@ var sessionMergeCases = []struct {
 	// NB: the last two fields are not merged (Debug, Logger)
 	{
 		"no-override",
-		Session{"./", "test-session", t_ptr(true), t_ptr("./.automux.hcl"), nil, false, nil},
+		Session{"./", "test-session", t_ptr(true), t_ptr("./.automux"), nil, false, nil},
 		Session{},
-		Session{"./", "test-session", t_ptr(true), t_ptr("./.automux.hcl"), nil, false, nil},
+		Session{"./", "test-session", t_ptr(true), t_ptr("./.automux"), nil, false, nil},
 	},
 	{
 		"full-override",
-		Session{"./", "test-session", t_ptr(true), t_ptr("./.automux.hcl"), nil, false, nil},
-		Session{"../", "better-session", t_ptr(false), t_ptr("../.automux.hcl"), []Window{{}}, false, nil},
-		Session{"../", "better-session", t_ptr(false), t_ptr("../.automux.hcl"), []Window{{}}, false, nil},
+		Session{"./", "test-session", t_ptr(true), t_ptr("./.automux"), nil, false, nil},
+		Session{"../", "better-session", t_ptr(false), t_ptr("../.automux"), []Window{{}}, false, nil},
+		Session{"../", "better-session", t_ptr(false), t_ptr("../.automux"), []Window{{}}, false, nil},
 	},
 }
 

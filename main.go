@@ -32,6 +32,12 @@ func main() {
 	}
 
 	if !config.Exists(configPath) {
+		if configPath == config.DefaultPath {
+			configPath = config.LegacyPath
+			if !config.Exists(configPath) {
+				return
+			}
+		}
 		return
 	}
 

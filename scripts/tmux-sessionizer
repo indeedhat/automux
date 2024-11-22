@@ -34,7 +34,7 @@ fi
 
 tmux_running=$(pgrep tmux)
 use_automux=1
-selected_name=$(automux -print-name "$selected/.automux.hcl" | tr . _)
+selected_name=$(automux -print-name "$selected/.automux" | tr . _)
 echo $selected_name
 if [[ -z $selected_name ]]; then
     unset use_automux
@@ -45,7 +45,7 @@ if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
     if [[ -z $use_automux ]]; then
         tmux new-session -s $selected_name -c $selected
     else
-        automux $selected/.automux.hcl
+        automux $selected/.automux
     fi
 
     exit 0
@@ -55,7 +55,7 @@ if ! tmux has-session -t=$selected_name 2> /dev/null; then
     if [[ -z $use_automux ]]; then
         tmux new-session -ds $selected_name -c $selected
     else
-        automux -d "$selected/.automux.hcl"
+        automux -d "$selected/.automux"
     fi
 fi
 

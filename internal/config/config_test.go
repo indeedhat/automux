@@ -54,7 +54,7 @@ func TestLoad(t *testing.T) {
 		t.Run(check.name, func(t *testing.T) {
 			require.Nil(t, os.Chdir(check.path))
 
-			c, err := Load(".automux.hcl", l, check.debug, false)
+			c, err := Load(".automux", l, check.debug, false)
 			if !check.shouldSucceed {
 				require.NotNil(t, err)
 				return

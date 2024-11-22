@@ -2,5 +2,5 @@ package configs
 
 import _ "embed"
 
-//go:embed template.automux.hcl.tmpl
+//go:embed template.automux.tmpl
 var ConfigTemplate string

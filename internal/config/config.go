@@ -2,29 +2,32 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/hcl/v2/hclsimple"
+	"github.com/indeedhat/icl"
 )
 
-const DefaultPath = ".automux.hcl"
+const DefaultPath = ".automux"
+const LegacyPath = ".automux.hcl"
 
 type Config struct {
+	Version int `icl:"version"`
 	// Used to store the relative directory for the config (if the config is not loaded from the current directory)
 	Directory string
 	// Session id and title for the tmux session
-	SessionId string `hcl:"session"`
+	SessionId string `icl:"session_id" validate:"required"`
 	// AttachExisting will cause automux to re attach to any exiting session for thet directory
-	AttachExisting bool `hcl:"attach_existing,optional"`
+	AttachExisting bool `icl:"attach_existing"`
 	// ConnfigPath for the tmux.conf file to use on this session
-	ConfigPath string `hcl:"config,optional"`
+	ConfigPath string `icl:"config"`
 	// Windows contains each of the tmux windo defs
-	Windows []Window `hcl:"window,block"`
+	Windows []Window `icl:"window"`
 	// Sessions contains definitions for background sessions to open up
-	Sessions []Session `hcl:"session,block"`
+	Sessions []Session `icl:"session"`
 
 	// Cli args
 	Detached bool
@@ -47,20 +50,20 @@ func (c *Config) AsSession() Session {
 
 type Session struct {
 	// Directory to open the session in
-	Directory string `hcl:"title,label"`
+	Directory string `icl:".param"`
 
 	// # Overrides:
-	// Any config defined within the session block will be merged into any .automux.hcl
+	// Any config defined within the session block will be merged into any .automux
 	// config found in the target directory with the session config taking presedence
 	// over anything found there
 	//
 	// Session id and title for the tmux session
-	SessionId string `hcl:"session,optional"`
+	SessionId string `icl:"session_id"`
 	// AttachExisting will cause automux to re attach to any exiting session for thet directory
-	AttachExisting *bool   `hcl:"attach_existing,optional"`
-	ConfigPath     *string `hcl:"config,optional"`
+	AttachExisting *bool   `icl:"attach_existing"`
+	ConfigPath     *string `icl:"config"`
 	// Windows contains each of the tmux windo defs
-	Windows []Window `hcl:"window,block"`
+	Windows []Window `icl:"window"`
 
 	Debug bool
 	L     *log.Logger
@@ -68,28 +71,28 @@ type Session struct {
 
 type Window struct {
 	// Title of the window/tab
-	Title string `hcl:"title,label"`
+	Title string `icl:"title"`
 	// Cmd contains the command to be run on opening the window
-	Exec *string `hcl:"exec,optional"`
+	Exec *string `icl:"exec"`
 	// Focus sets the focus to this window after setup is done
-	Focus *bool `hcl:"focus,optional"`
+	Focus *bool `icl:"focus"`
 	// Sub directory to open the split in
-	Directory *string `hcl:"dir,optional"`
+	Directory *string `icl:"dir"`
 	// Splits contains any extra splits to be opened in this window/tab
-	Splits []Split `hcl:"split,block"`
+	Splits []Split `icl:"split"`
 }
 
 type Split struct {
 	// Vertical defines if the split is vertical or horizontal
-	Vertical *bool `hcl:"vertical,optional"`
+	Vertical *bool `icl:"vertical"`
 	// Cmd contains any command to be ran when opening the split
-	Exec *string `hcl:"exec,optional"`
+	Exec *string `icl:"exec"`
 	// Size in % of the total screen realestate to take up
-	Size *int `hcl:"size,optional"`
+	Size *int `icl:"size"`
 	// Focus sets the focus to this split after setup is done
-	Focus *bool `hcl:"focus,optional"`
+	Focus *bool `icl:"focus"`
 	// Sub directory to open the split in
-	Directory *string `hcl:"dir,optional"`
+	Directory *string `icl:"dir"`
 }
 
 // Load loads the config from the given file path
@@ -98,12 +101,22 @@ func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error
 		AttachExisting: true,
 	}
 
-	data, err := os.ReadFile(path)
+	ast, err := icl.ParseFile(path)
 	if err != nil {
 		return nil, err
+	} else if ast.Version() == 0 {
+		return nil, errors.New(
+			"you are using an old config format, see upgrade instructions" +
+				"\nhttps://github.com/indeedhat/automux?tab=readme-ov-file#upgrade",
+		)
+	} else if ast.Version() > 1 {
+		return nil, fmt.Errorf(
+			"automux config version %d is not supported.\n please update automux or downgrade your config version to 1",
+			ast.Version(),
+		)
 	}
 
-	if err := hclsimple.Decode(path, data, nil, &c); err != nil {
+	if err := ast.Unmarshal(&c); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +133,7 @@ func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error
 	var validSessions []Session
 	for _, session := range c.Sessions {
 		session.Debug = debug
-		sessionConf, err := Load(filepath.Join(session.Directory, ".automux.hcl"), logger, debug, detached)
+		sessionConf, err := Load(filepath.Join(session.Directory, ".automux"), logger, debug, detached)
 		if err != nil {
 			if os.IsNotExist(err) {
 				validSessions = append(validSessions, session)

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var expectedGeneratedConfig = `session = "tester"
+var expectedGeneratedConfig = `session_id = "tester"
 # config = "./tmux.conf"
 
 window "Editor" {
@@ -34,18 +34,18 @@ func TestInitCmd(t *testing.T) {
 		tmpStdin.Close()
 		os.Remove(tmpStdin.Name())
 		os.Stdin = stdin
-		os.Remove(".automux.hcl")
+		os.Remove(".automux")
 	}()
 
 	assert.Nil(t, InitCmd(), "initCmd")
-	assert.FileExists(t, ".automux.hcl")
+	assert.FileExists(t, ".automux")
 
-	stat, err := os.Stat(".automux.hcl")
+	stat, err := os.Stat(".automux")
 	assert.Nil(t, err, "stat")
 	modTime := stat.ModTime()
 
 	assert.Nil(t, InitCmd(), "initCmd")
-	stat, err = os.Stat(".automux.hcl")
+	stat, err = os.Stat(".automux")
 	assert.Nil(t, err, "stat")
 	assert.Equal(t, modTime, stat.ModTime(), "file not updated")
 }

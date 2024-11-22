@@ -14,7 +14,7 @@ import (
 
 var triggerCmdConfig = &config.Config{
 	SessionId:  "automux-trigger-config",
-	ConfigPath: ".automux.hcl",
+	ConfigPath: ".automux",
 	Windows: []config.Window{
 		{
 			Title: "Editor",
@@ -82,7 +82,7 @@ var triggerCmdConfig = &config.Config{
 	},
 }
 
-var triggerCmdDebugText = `tmux new-session -d -s automux-trigger-config -f .automux.hcl
+var triggerCmdDebugText = `tmux new-session -d -s automux-trigger-config -f .automux
 tmux  rename-window -t automux-trigger-config Editor
 tmux  send-keys -t automux-trigger-config nvim Enter
 tmux  split-window -t automux-trigger-config -h

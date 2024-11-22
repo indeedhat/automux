@@ -1,4 +1,5 @@
-session = "my-multi-session"
+version = 1
+session_id = "my-multi-session"
 
 window "editor" {
     exec = "nvim"
@@ -23,7 +24,7 @@ session "./with_overrides/" {
     }
 }
 session "./no_config_file/" {
-    session = "my-no-config-subsession"
+    session_id = "my-no-config-subsession"
 
     window "editor" {
         exec = "nvim"

@@ -1,0 +1,14 @@
+version = 1
+
+session_id = "Automux-dev"
+
+window "Editor" {
+    exec = "nvim"
+    focus = true
+}
+
+window "Shell" {
+    split {
+        size = 30
+    }
+}

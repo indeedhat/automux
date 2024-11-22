@@ -68,7 +68,7 @@ Usage of automux:
 ```hcl
 # the session id to use for this directory
 # NOTE: this is the only required field
-session = "my-session"
+session_id = "my-session"
 
 # config lets you set a custom tmux config for this directory
 config = "./tmux.conf"
@@ -122,7 +122,7 @@ session "path/to/session_dir" {
     # if a .automux.hcl file is found in the session dir then it will be loaded
     # any config put in the session block will overwrite config found there
 
-    # session = "my-session"
+    # session_id = "my-session"
     # config = "./tmux.conf"
     window "window_name" {
         # if a window with the same name is found in the .autmux.hcl file then the two blocks will be
@@ -140,3 +140,17 @@ session "path/to/session_dir" {
     }
 }
 ```
+
+## Upgrade
+If you are coming from an older version of automux it was configured with a `.automux.hcl` file,  
+This has been updated to use an icl file called `.automux`.
+
+It is recommended that you rename your `.automux.hcl` file to `.automux`, the former will still be picked up
+but it is deprecated and support will be dropped in a future version.
+
+### File contents changes
+- add `version = 1` as the very first non config line in your file
+- convert any `session = "..."` lines to `session_id = "..."`
+
+### tmux-sessionizer.sh
+if you are using the tmux-sessionizer script provided in the repo it will need to be updated to the latest version
