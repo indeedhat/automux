@@ -7,7 +7,7 @@ Auto mux checks for a .automux.hcl on each cd and if one is found it will automa
 This is a simple project, there are other projects out there that take the same concept a lot further.  
 I personally like simpler tools so i created automux.
 
-![demo.gif](_examples/demo.gif)
+![demo.gif](_examples/demo-24-11-22.gif)
 
 ## Insall
 ```sh
