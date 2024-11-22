@@ -12,3 +12,5 @@ window "Shell" {
         size = 30
     }
 }
+
+# vi: ft=hcl
