@@ -1,4 +1,5 @@
-Output out.gif
+Output demo-v1.4.0_.gif
+
 Set FontSize 15
 Set Width 1024
 Set Height 1024
