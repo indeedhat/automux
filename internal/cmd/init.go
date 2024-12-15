@@ -10,30 +10,37 @@ import (
 
 	"github.com/indeedhat/automux/configs"
 	"github.com/indeedhat/automux/internal/config"
+	"github.com/spf13/cobra"
 )
 
-// InitCmd handles setting up a default automux config in the current directory
-func InitCmd() error {
-	if config.Exists() {
-		return nil
-	}
+func Init() *cobra.Command {
+	return &cobra.Command{
+		Use:   "Init",
+		Short: "Initialize automux in the current directory",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if config.Exists() {
+				return nil
+			}
 
-	fmt.Print("Enter the session name: ")
-	input, err := readInput()
-	if err != nil {
-		return err
-	}
+			fmt.Print("Enter the session name: ")
+			input, err := readInput()
+			if err != nil {
+				return err
+			}
 
-	configTpl, err := generateConfig(string(input))
-	if err != nil {
-		return err
-	}
+			configTpl, err := generateConfig(string(input))
+			if err != nil {
+				return err
+			}
 
-	if err = os.WriteFile(config.DefaultPath, configTpl, 0644); err == nil {
-		fmt.Print("AutoMux config created\n")
-	}
+			if err = os.WriteFile(config.DefaultPath, configTpl, 0644); err == nil {
+				fmt.Print("AutoMux config created\n")
+			}
 
-	return err
+			return err
+		},
+	}
 }
 
 // readInput reads a single line of input from stdin

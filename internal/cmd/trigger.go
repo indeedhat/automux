@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -10,48 +11,68 @@ import (
 
 	"github.com/indeedhat/automux/internal/config"
 	"github.com/indeedhat/automux/internal/tmux"
+	"github.com/spf13/cobra"
 )
 
-// TriggerCmd is the handler for triggering the auto mux start procedure
-func TriggerCmd(conf *config.Config) error {
-	// if we are already in a tmux session then there is nothing to do
-	if os.Getenv("TMUX") != "" && !conf.Detached {
-		return nil
+func Trigger(l *log.Logger, configPath string) *cobra.Command {
+	var debug bool
+	var detached bool
+
+	cmd := &cobra.Command{
+		Use:   "",
+		Short: "Trigger the automux config in the current directory, if present",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			conf, err := config.Load(configPath, l, debug, detached)
+			if err != nil {
+				log.Fatal("!! invalid automux config !!\n ", err)
+			}
+
+			// if we are already in a tmux session then there is nothing to do
+			if os.Getenv("TMUX") != "" && !conf.Detached {
+				return nil
+			}
+
+			masterSession := conf.AsSession()
+
+			if tmux.SessionExists(masterSession) {
+				if conf.AttachExisting {
+					goto attach
+				}
+				return nil
+			}
+
+			createSession(masterSession)
+
+			for i, session := range conf.Sessions {
+				if session.SessionId == "" {
+					conf.L.Printf("Failed to start session %d: no session id set\n", i)
+					continue
+				}
+				if tmux.SessionExists(session) {
+					continue
+				}
+
+				createSession(session)
+			}
+
+		attach:
+			if !conf.Debug && !conf.Detached {
+				cmd := exec.Command("tmux", "attach", "-t", conf.SessionId)
+				cmd.Stdout = os.Stdout
+				cmd.Stdin = os.Stdin
+				cmd.Stderr = os.Stderr
+				cmd.Run()
+			}
+
+			return nil
+		},
 	}
 
-	masterSession := conf.AsSession()
+	cmd.Flags().BoolVarP(&debug, "debug", "", false, "print tmux commands rather than running them")
+	cmd.Flags().BoolVarP(&detached, "detached", "d", false, "Run the automux session detached\nThis will allow you to start an automux session from another session")
 
-	if tmux.SessionExists(masterSession) {
-		if conf.AttachExisting {
-			goto attach
-		}
-		return nil
-	}
-
-	createSession(masterSession)
-
-	for i, session := range conf.Sessions {
-		if session.SessionId == "" {
-			conf.L.Printf("Failed to start session %d: no session id set\n", i)
-			continue
-		}
-		if tmux.SessionExists(session) {
-			continue
-		}
-
-		createSession(session)
-	}
-
-attach:
-	if !conf.Debug && !conf.Detached {
-		cmd := exec.Command("tmux", "attach", "-t", conf.SessionId)
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
-		cmd.Stderr = os.Stderr
-		cmd.Run()
-	}
-
-	return nil
+	return cmd
 }
 
 // createSession creates a new tmux session, wait for the server to start it then
