@@ -3,7 +3,7 @@ module github.com/indeedhat/automux
 go 1.23.2
 
 require (
-	github.com/indeedhat/icl v0.0.0-20241122100344-f70164246de3
+	github.com/indeedhat/icl v0.0.0-20241201163654-3fd7f368648f
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 )

@@ -23,14 +23,14 @@ func Trigger(l *log.Logger, configPath string) *cobra.Command {
 		Short: "Trigger the automux config in the current directory, if present",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// if we are already in a tmux session then there is nothing to do
+			if os.Getenv("TMUX") != "" && !detached {
+				return nil
+			}
+
 			conf, err := config.Load(configPath, l, debug, detached)
 			if err != nil {
 				log.Fatal("!! invalid automux config !!\n ", err)
-			}
-
-			// if we are already in a tmux session then there is nothing to do
-			if os.Getenv("TMUX") != "" && !conf.Detached {
-				return nil
 			}
 
 			masterSession := conf.AsSession()
@@ -147,7 +147,7 @@ func processPanels(session config.Session) {
 func processSplits(window config.Window, session config.Session, focus *string, i int) {
 	for j, split := range window.Splits {
 		if split.Focus != nil && *split.Focus {
-			*focus = fmt.Sprintf(":%d.%d", i, j)
+			*focus = fmt.Sprintf(":%d.%d", i, j+1)
 		}
 
 		// This looks backwards but it makes the splits open in the way i expect

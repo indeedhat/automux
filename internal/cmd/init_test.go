@@ -37,14 +37,14 @@ func TestInitCmd(t *testing.T) {
 		os.Remove(".automux")
 	}()
 
-	assert.Nil(t, InitCmd(), "initCmd")
+	assert.Nil(t, Init().Execute(), "initCmd")
 	assert.FileExists(t, ".automux")
 
 	stat, err := os.Stat(".automux")
 	assert.Nil(t, err, "stat")
 	modTime := stat.ModTime()
 
-	assert.Nil(t, InitCmd(), "initCmd")
+	assert.Nil(t, Init().Execute(), "initCmd")
 	stat, err = os.Stat(".automux")
 	assert.Nil(t, err, "stat")
 	assert.Equal(t, modTime, stat.ModTime(), "file not updated")

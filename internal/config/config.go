@@ -71,7 +71,7 @@ type Session struct {
 
 type Window struct {
 	// Title of the window/tab
-	Title string `icl:"title"`
+	Title string `icl:".param"`
 	// Cmd contains the command to be run on opening the window
 	Exec *string `icl:"exec"`
 	// Focus sets the focus to this window after setup is done
@@ -132,6 +132,7 @@ func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error
 
 	var validSessions []Session
 	for _, session := range c.Sessions {
+		session.L = logger
 		session.Debug = debug
 		sessionConf, err := Load(filepath.Join(session.Directory, ".automux"), logger, debug, detached)
 		if err != nil {
