@@ -21,7 +21,7 @@ func main() {
 	var l = log.New(&b, "", 0)
 
 	root := cmd.Trigger(l, configPath)
-	root.AddCommand(cmd.Init(), cmd.PrintName(l, configPath))
+	root.AddCommand(cmd.InitC(), cmd.PrintName(l, configPath))
 
 	if err := root.Execute(); err != nil {
 		log.Fatal(err)

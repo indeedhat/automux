@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -30,6 +31,10 @@ func Trigger(l *log.Logger, configPath string) *cobra.Command {
 
 			conf, err := config.Load(configPath, l, debug, detached)
 			if err != nil {
+				if errors.Is(err, os.ErrNotExist) {
+					return nil
+				}
+				log.Printf("%T", err)
 				log.Fatal("!! invalid automux config !!\n ", err)
 			}
 
@@ -69,7 +74,7 @@ func Trigger(l *log.Logger, configPath string) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&debug, "debug", "", false, "print tmux commands rather than running them")
+	cmd.Flags().BoolVar(&debug, "debug", false, "print tmux commands rather than running them")
 	cmd.Flags().BoolVarP(&detached, "detached", "d", false, "Run the automux session detached\nThis will allow you to start an automux session from another session")
 
 	return cmd

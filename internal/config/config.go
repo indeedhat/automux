@@ -11,8 +11,11 @@ import (
 	"github.com/indeedhat/icl"
 )
 
-const DefaultPath = ".automux"
-const LegacyPath = ".automux.hcl"
+const (
+	DefaultPath = ".automux"
+	JsonPath    = ".automux.json"
+	YamlPath    = ".automux.yml"
+)
 
 type Config struct {
 	Version int `icl:"version"`
@@ -152,14 +155,17 @@ func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error
 
 // Exists checks if an automux config exists in the current directory
 func Exists(path ...string) bool {
-	p := DefaultPath
+	p := []string{DefaultPath, JsonPath, YamlPath}
 	if len(path) > 0 {
-		p = path[0]
+		p = path
 	}
 
-	if _, err := os.Stat(p); errors.Is(err, os.ErrNotExist) {
-		return false
+	for _, path := range p {
+
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
 	}
 
-	return true
+	return false
 }

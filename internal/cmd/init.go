@@ -8,14 +8,18 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/indeedhat/automux/configs"
 	"github.com/indeedhat/automux/internal/config"
 	"github.com/spf13/cobra"
 )
 
-func Init() *cobra.Command {
-	return &cobra.Command{
-		Use:   "Init",
+func InitC() *cobra.Command {
+	var jsonFlag bool
+	var yamlFlag bool
+
+	cmd := &cobra.Command{
+		Use:   "init",
 		Short: "Initialize automux in the current directory",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -29,18 +33,34 @@ func Init() *cobra.Command {
 				return err
 			}
 
-			configTpl, err := generateConfig(string(input))
+			tpl := configs.IclTemplate
+			path := config.DefaultPath
+			if jsonFlag {
+				tpl = configs.JsonTemplate
+				path = config.JsonPath
+			} else if yamlFlag {
+				tpl = configs.YamlTemplate
+				path = config.YamlPath
+			}
+			spew.Dump([]any{args, jsonFlag, yamlFlag, tpl, path})
+
+			configTpl, err := generateConfig(tpl, string(input))
 			if err != nil {
 				return err
 			}
 
-			if err = os.WriteFile(config.DefaultPath, configTpl, 0644); err == nil {
+			if err = os.WriteFile(path, configTpl, 0644); err == nil {
 				fmt.Print("AutoMux config created\n")
 			}
 
 			return err
 		},
 	}
+
+	cmd.Flags().BoolVar(&jsonFlag, "json", false, "Create the config in json format")
+	cmd.Flags().BoolVar(&yamlFlag, "yaml", false, "Create the config in yaml format")
+
+	return cmd
 }
 
 // readInput reads a single line of input from stdin
@@ -50,8 +70,8 @@ func readInput() ([]byte, error) {
 }
 
 // generateConfig writes the default config file to the current directory
-func generateConfig(name string) ([]byte, error) {
-	tmpl, err := template.New("config").Parse(configs.ConfigTemplate)
+func generateConfig(t, name string) ([]byte, error) {
+	tmpl, err := template.New("config").Parse(t)
 	if err != nil {
 		return nil, err
 	}
