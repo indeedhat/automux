@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -9,28 +10,35 @@ import (
 	"strings"
 
 	"github.com/indeedhat/icl"
+	"gopkg.in/yaml.v3"
 )
 
 const (
 	DefaultPath = ".automux"
 	JsonPath    = ".automux.json"
 	YamlPath    = ".automux.yml"
+	YamlAltPath = ".automux.yaml"
+
+	defaultExt = ".automux"
+	jsonExt    = ".json"
+	yamlExt    = ".yml"
+	yamlAltExt = ".yaml"
 )
 
 type Config struct {
-	Version int `icl:"version"`
+	Version int `icl:"version" json:"version" yaml:"version"`
 	// Used to store the relative directory for the config (if the config is not loaded from the current directory)
 	Directory string
 	// Session id and title for the tmux session
-	SessionId string `icl:"session_id" validate:"required"`
+	SessionId string `icl:"session_id" json:"session_id" yaml:"session_id"`
 	// AttachExisting will cause automux to re attach to any exiting session for thet directory
-	AttachExisting bool `icl:"attach_existing"`
+	AttachExisting bool `icl:"attach_existing" json:"attach_existing" yaml:"attach_existing"`
 	// ConnfigPath for the tmux.conf file to use on this session
-	ConfigPath string `icl:"config"`
+	ConfigPath string `icl:"config" json:"config" yaml:"config"`
 	// Windows contains each of the tmux windo defs
-	Windows []Window `icl:"window"`
+	Windows []Window `icl:"window" json:"windows" yaml:"windows"`
 	// Sessions contains definitions for background sessions to open up
-	Sessions []Session `icl:"session"`
+	Sessions []Session `icl:"session" json:"sessions" yaml:"sessions"`
 
 	// Cli args
 	Detached bool
@@ -53,7 +61,7 @@ func (c *Config) AsSession() Session {
 
 type Session struct {
 	// Directory to open the session in
-	Directory string `icl:".param"`
+	Directory string `icl:".param" json:"dir" yaml:"dir"`
 
 	// # Overrides:
 	// Any config defined within the session block will be merged into any .automux
@@ -61,12 +69,12 @@ type Session struct {
 	// over anything found there
 	//
 	// Session id and title for the tmux session
-	SessionId string `icl:"session_id"`
+	SessionId string `icl:"session_id" json:"session_id" yaml:"session_id"`
 	// AttachExisting will cause automux to re attach to any exiting session for thet directory
-	AttachExisting *bool   `icl:"attach_existing"`
-	ConfigPath     *string `icl:"config"`
+	AttachExisting *bool   `icl:"attach_existing" json:"attach_existing" yaml:"attach_existing"`
+	ConfigPath     *string `icl:"config" json:"config" yaml:"config"`
 	// Windows contains each of the tmux windo defs
-	Windows []Window `icl:"window"`
+	Windows []Window `icl:"window" json:"windows" yaml:"windows"`
 
 	Debug bool
 	L     *log.Logger
@@ -74,28 +82,56 @@ type Session struct {
 
 type Window struct {
 	// Title of the window/tab
-	Title string `icl:".param"`
+	Title string `icl:".param" json:"title" yaml:"title"`
 	// Cmd contains the command to be run on opening the window
-	Exec *string `icl:"exec"`
+	Exec *string `icl:"exec" json:"exec" yaml:"exec"`
 	// Focus sets the focus to this window after setup is done
-	Focus *bool `icl:"focus"`
+	Focus *bool `icl:"focus" json:"focus" yaml:"focus"`
 	// Sub directory to open the split in
-	Directory *string `icl:"dir"`
+	Directory *string `icl:"dir" json:"dir" yaml:"dir"`
 	// Splits contains any extra splits to be opened in this window/tab
-	Splits []Split `icl:"split"`
+	Splits []Split `icl:"split" json:"splits" yaml:"splits"`
 }
 
 type Split struct {
 	// Vertical defines if the split is vertical or horizontal
-	Vertical *bool `icl:"vertical"`
+	Vertical *bool `icl:"vertical" json:"vertical" yaml:"vertical"`
 	// Cmd contains any command to be ran when opening the split
-	Exec *string `icl:"exec"`
+	Exec *string `icl:"exec" json:"exec" yaml:"exec"`
 	// Size in % of the total screen realestate to take up
-	Size *int `icl:"size"`
+	Size *int `icl:"size" json:"size" yaml:"size"`
 	// Focus sets the focus to this split after setup is done
-	Focus *bool `icl:"focus"`
+	Focus *bool `icl:"focus" json:"focus" yaml:"focus"`
 	// Sub directory to open the split in
-	Directory *string `icl:"dir"`
+	Directory *string `icl:"dir" json:"dir" yaml:"dir"`
+}
+
+// LoadAny loads the first available config from the provided dir
+func LoadAny(path string, logger *log.Logger, debug, detached bool) (*Config, error) {
+	stat, err := os.Stat(path)
+	if err != nil || !stat.IsDir() {
+		return Load(path, logger, debug, detached)
+	}
+
+	path = filepath.Join(path, defaultExt)
+
+	if c, err := Load(path, logger, debug, detached); err == nil {
+		return c, nil
+	}
+
+	if c, err := Load(path+jsonExt, logger, debug, detached); err == nil {
+		return c, nil
+	}
+
+	if c, err := Load(path+yamlExt, logger, debug, detached); err == nil {
+		return c, nil
+	}
+
+	if c, err := Load(path+yamlAltExt, logger, debug, detached); err == nil {
+		return c, nil
+	}
+
+	return nil, errors.New("no config found in directory")
 }
 
 // Load loads the config from the given file path
@@ -104,23 +140,23 @@ func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error
 		AttachExisting: true,
 	}
 
-	ast, err := icl.ParseFile(path)
-	if err != nil {
-		return nil, err
-	} else if ast.Version() == 0 {
-		return nil, errors.New(
-			"you are using an old config format, see upgrade instructions" +
-				"\nhttps://github.com/indeedhat/automux?tab=readme-ov-file#upgrade",
-		)
-	} else if ast.Version() > 1 {
-		return nil, fmt.Errorf(
-			"automux config version %d is not supported.\n please update automux or downgrade your config version to 1",
-			ast.Version(),
-		)
-	}
+	ext := filepath.Ext(path)
 
-	if err := ast.Unmarshal(&c); err != nil {
-		return nil, err
+	switch ext {
+	case defaultExt:
+		if err := loadICL(path, &c); err != nil {
+			return nil, err
+		}
+	case jsonExt:
+		if err := loadJSON(path, &c); err != nil {
+			return nil, err
+		}
+	case yamlExt, yamlAltExt:
+		if err := loadYAML(path, &c); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, errors.New("Config not found")
 	}
 
 	// stop spaces from breaking the tmux commands
@@ -153,15 +189,69 @@ func Load(path string, logger *log.Logger, debug, detached bool) (*Config, error
 	return &c, nil
 }
 
+func loadICL(path string, c *Config) error {
+	ast, err := icl.ParseFile(path)
+	if err != nil {
+		return err
+	}
+
+	if err := versionCheck(ast.Version()); err != nil {
+		return err
+	}
+
+	return ast.Unmarshal(c)
+}
+
+func loadJSON(path string, c *Config) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(data, c); err != nil {
+		return err
+	}
+
+	return versionCheck(c.Version)
+}
+
+func loadYAML(path string, c *Config) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(data, c); err != nil {
+		return err
+	}
+
+	return versionCheck(c.Version)
+}
+
+func versionCheck(version int) error {
+	if version == 0 {
+		return errors.New(
+			"you are using an old config format, see upgrade instructions" +
+				"\nhttps://github.com/indeedhat/automux?tab=readme-ov-file#upgrade",
+		)
+	} else if version > 1 {
+		return fmt.Errorf(
+			"automux config version %d is not supported.\n please update automux or downgrade your config version to 1",
+			version,
+		)
+	}
+
+	return nil
+}
+
 // Exists checks if an automux config exists in the current directory
 func Exists(path ...string) bool {
-	p := []string{DefaultPath, JsonPath, YamlPath}
+	p := []string{DefaultPath, JsonPath, YamlPath, YamlAltPath}
 	if len(path) > 0 {
 		p = path
 	}
 
 	for _, path := range p {
-
 		if _, err := os.Stat(path); err == nil {
 			return true
 		}

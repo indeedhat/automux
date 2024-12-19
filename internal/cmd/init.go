@@ -8,13 +8,12 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/indeedhat/automux/configs"
 	"github.com/indeedhat/automux/internal/config"
 	"github.com/spf13/cobra"
 )
 
-func InitC() *cobra.Command {
+func Init() *cobra.Command {
 	var jsonFlag bool
 	var yamlFlag bool
 
@@ -42,7 +41,6 @@ func InitC() *cobra.Command {
 				tpl = configs.YamlTemplate
 				path = config.YamlPath
 			}
-			spew.Dump([]any{args, jsonFlag, yamlFlag, tpl, path})
 
 			configTpl, err := generateConfig(tpl, string(input))
 			if err != nil {

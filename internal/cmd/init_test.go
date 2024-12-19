@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,14 +41,14 @@ func TestInitCmd(t *testing.T) {
 		os.Remove(".automux")
 	}()
 
-	require.Nil(t, InitC().Execute(), "initCmd")
+	require.Nil(t, Init().Execute(), "initCmd")
 	require.FileExists(t, ".automux")
 
 	stat, err := os.Stat(".automux")
 	require.Nil(t, err, "stat")
 	modTime := stat.ModTime()
 
-	require.Nil(t, InitC().Execute(), "initCmd")
+	require.Nil(t, Init().Execute(), "initCmd")
 	stat, err = os.Stat(".automux")
 	require.Nil(t, err, "stat")
 	require.Equal(t, modTime, stat.ModTime(), "file not updated")
@@ -64,12 +63,12 @@ var expectedJsonConfig = `{
   "session_id": "tester",
   "windows": [
     {
-      ".title": "Editor",
+      "title": "Editor",
       "exec": "vim",
       "focus": true
     },
     {
-      ".title": "Shell",
+      "title": "Shell",
       "splits": [
         {}
       ]
@@ -87,7 +86,7 @@ func TestInitCmdWithJson(t *testing.T) {
 		os.Remove(".automux.json")
 	}()
 
-	c := InitC()
+	c := Init()
 	c.SetArgs([]string{"--json"})
 
 	require.Nil(t, c.Execute(), "initCmd")
@@ -97,9 +96,8 @@ func TestInitCmdWithJson(t *testing.T) {
 	require.Nil(t, err, "stat")
 	modTime := stat.ModTime()
 
-	c = InitC()
+	c = Init()
 	c.SetArgs([]string{"--json"})
-	spew.Dump(c)
 	require.Nil(t, c.Execute(), "initCmd")
 
 	stat, err = os.Stat(".automux.json")
@@ -115,10 +113,10 @@ var expectedYamlConfig = `# config version
 version: 1
 session_id: "tester"
 windows:
-  - .title: Editor
+  - title: Editor
     exec: vim
     focus: true
-  - .title: Shell
+  - title: Shell
     splits:
       - {}
 `
@@ -132,7 +130,7 @@ func TestInitCmdWithYaml(t *testing.T) {
 		os.Remove(".automux.yml")
 	}()
 
-	c := InitC()
+	c := Init()
 	c.SetArgs([]string{"--yaml"})
 
 	require.NoFileExists(t, ".automux")
@@ -143,7 +141,7 @@ func TestInitCmdWithYaml(t *testing.T) {
 	require.Nil(t, err, "stat")
 	modTime := stat.ModTime()
 
-	c = InitC()
+	c = Init()
 	c.SetArgs([]string{"--yaml"})
 	require.Nil(t, c.Execute(), "initCmd")
 

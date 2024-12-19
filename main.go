@@ -2,26 +2,18 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"log"
 
 	"github.com/indeedhat/automux/internal/cmd"
-	"github.com/indeedhat/automux/internal/config"
 )
 
 func main() {
-	var configPath = config.DefaultPath
-
-	if path := flag.Arg(0); path != "" {
-		configPath = path
-	}
-
 	var b bytes.Buffer
 	var l = log.New(&b, "", 0)
 
-	root := cmd.Trigger(l, configPath)
-	root.AddCommand(cmd.InitC(), cmd.PrintName(l, configPath))
+	root := cmd.Trigger(l)
+	root.AddCommand(cmd.Init(), cmd.PrintName(l))
 
 	if err := root.Execute(); err != nil {
 		log.Fatal(err)

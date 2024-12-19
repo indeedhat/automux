@@ -15,27 +15,36 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Trigger(l *log.Logger, configPath string) *cobra.Command {
+func Trigger(l *log.Logger) *cobra.Command {
 	var debug bool
 	var detached bool
 
 	cmd := &cobra.Command{
 		Use:   "",
 		Short: "Trigger the automux config in the current directory, if present",
-		Args:  cobra.NoArgs,
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// if we are already in a tmux session then there is nothing to do
 			if os.Getenv("TMUX") != "" && !detached {
 				return nil
 			}
 
-			conf, err := config.Load(configPath, l, debug, detached)
+			configPath, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+
+			if len(args) == 1 {
+				configPath = args[0]
+			}
+			log.Print(args, configPath)
+
+			conf, err := config.LoadAny(configPath, l, debug, detached)
 			if err != nil {
 				if errors.Is(err, os.ErrNotExist) {
 					return nil
 				}
-				log.Printf("%T", err)
-				log.Fatal("!! invalid automux config !!\n ", err)
+				return errors.New("!! invalid automux config !!\n " + err.Error())
 			}
 
 			masterSession := conf.AsSession()
