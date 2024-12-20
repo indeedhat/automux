@@ -147,7 +147,7 @@ func LoadAny(path string, logger *log.Logger, debug, detached bool) (*Config, er
 		return c, nil
 	}
 
-	return nil, errors.New("no config found in directory")
+	return nil, os.ErrNotExist
 }
 
 // Load loads the config from the given file path

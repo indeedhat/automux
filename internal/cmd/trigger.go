@@ -54,7 +54,6 @@ func triggerCmd(cmd *cobra.Command, args []string) error {
 	if len(args) == 1 {
 		configPath = args[0]
 	}
-	log.Print(args, configPath)
 
 	conf, err := config.LoadAny(
 		configPath,
