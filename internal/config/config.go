@@ -106,6 +106,22 @@ type Split struct {
 	Directory *string `icl:"dir" json:"dir" yaml:"dir"`
 }
 
+// Exists checks if an automux config exists in the current directory
+func Exists(path ...string) bool {
+	p := []string{DefaultPath, JsonPath, YamlPath, YamlAltPath}
+	if len(path) > 0 {
+		p = path
+	}
+
+	for _, path := range p {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 // LoadAny loads the first available config from the provided dir
 func LoadAny(path string, logger *log.Logger, debug, detached bool) (*Config, error) {
 	stat, err := os.Stat(path)
@@ -242,20 +258,4 @@ func versionCheck(version int) error {
 	}
 
 	return nil
-}
-
-// Exists checks if an automux config exists in the current directory
-func Exists(path ...string) bool {
-	p := []string{DefaultPath, JsonPath, YamlPath, YamlAltPath}
-	if len(path) > 0 {
-		p = path
-	}
-
-	for _, path := range p {
-		if _, err := os.Stat(path); err == nil {
-			return true
-		}
-	}
-
-	return false
 }

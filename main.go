@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 
@@ -12,10 +13,12 @@ func main() {
 	var b bytes.Buffer
 	var l = log.New(&b, "", 0)
 
-	root := cmd.Trigger(l)
-	root.AddCommand(cmd.Init(), cmd.PrintName(l))
+	ctx := context.WithValue(context.Background(), "logger", l)
 
-	if err := root.Execute(); err != nil {
+	root := cmd.Trigger()
+	root.AddCommand(cmd.Init(), cmd.PrintName())
+
+	if err := root.ExecuteContext(ctx); err != nil {
 		log.Fatal(err)
 	}
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -53,10 +54,12 @@ func TestTriggerCmdTmuxSet(t *testing.T) {
 	var b bytes.Buffer
 	var l = log.New(&b, "", 0)
 
-	c := Trigger(l)
+	ctx := context.WithValue(context.Background(), "logger", l)
+
+	c := Trigger()
 	c.SetArgs([]string{".automux"})
 
-	assert.Nil(t, c.Execute(), "TriggerCmd")
+	assert.Nil(t, c.ExecuteContext(ctx), "TriggerCmd")
 }
 
 var triggerIclDocument = `
@@ -124,10 +127,12 @@ func TestTriggerCmdMultiSession(t *testing.T) {
 	var b bytes.Buffer
 	var l = log.New(&b, "", 0)
 
-	c := Trigger(l)
+	ctx := context.WithValue(context.Background(), "logger", l)
+
+	c := Trigger()
 	c.SetArgs([]string{"--debug", "--detached", tmpPath.Name()})
 
-	assert.Nil(t, c.Execute(), "TriggerCmd")
+	assert.Nil(t, c.ExecuteContext(ctx), "TriggerCmd")
 	parts := strings.SplitN(b.String(), "\n", 2)
 
 	assert.True(t, strings.HasPrefix(parts[0], "tmux new-session -d -s automux-trigger-config -c /tmp/"))
@@ -215,10 +220,12 @@ func TestTriggerCmdMultiSessionWithJson(t *testing.T) {
 	var b bytes.Buffer
 	var l = log.New(&b, "", 0)
 
-	c := Trigger(l)
+	ctx := context.WithValue(context.Background(), "logger", l)
+
+	c := Trigger()
 	c.SetArgs([]string{"--debug", "--detached", tmpPath.Name()})
 
-	assert.Nil(t, c.Execute(), "TriggerCmd")
+	assert.Nil(t, c.ExecuteContext(ctx), "TriggerCmd")
 	parts := strings.SplitN(b.String(), "\n", 2)
 
 	assert.True(t, strings.HasPrefix(parts[0], "tmux new-session -d -s automux-trigger-config -c /tmp/"))
@@ -278,10 +285,12 @@ func TestTriggerCmdMultiSessionWithYaml(t *testing.T) {
 	var b bytes.Buffer
 	var l = log.New(&b, "", 0)
 
-	c := Trigger(l)
+	ctx := context.WithValue(context.Background(), "logger", l)
+
+	c := Trigger()
 	c.SetArgs([]string{"--debug", "--detached", tmpPath.Name()})
 
-	assert.Nil(t, c.Execute(), "TriggerCmd")
+	assert.Nil(t, c.ExecuteContext(ctx), "TriggerCmd")
 	parts := strings.SplitN(b.String(), "\n", 2)
 
 	assert.True(t, strings.HasPrefix(parts[0], "tmux new-session -d -s automux-trigger-config -c /tmp/"))

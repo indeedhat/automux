@@ -56,7 +56,7 @@ func AwaitSession(session config.Session) {
 		return
 	}
 
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(2 * time.Millisecond)
 	timeout := time.After(time.Second)
 	for {
 		select {

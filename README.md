@@ -52,19 +52,34 @@ be focused from a single terminal window at will.
 ## Usage
 ```
 automux -h
-automux [flags] [path]
-Usage of automux:
-  -d    Run the automux session detached
-        This will allow you to start an automux session from another session
-  -debug
-        print tmux commands rather than running them
-  -init
-        Init the automux config template in the current directory
-  -print-name
-        Print the session name if the target directory is a automux directory
+Trigger the automux config in the current directory, if present
+
+Usage:
+   [flags]
+   [command]
+
+Available Commands:
+  completion  Generate the autocompletion script for the specified shell
+  help        Help about any command
+  init        Initialize automux in the current directory
+  print-name  Print the session name if the target directory is a automux directory
+
+Flags:
+      --debug      print tmux commands rather than running them
+  -d, --detached   Run the automux session detached
+                   This will allow you to start an automux session from another session
+  -h, --help       help for this command
+
+Use " [command] --help" for more information about a command.
 ```
 
 ## Configure
+Automux is configured with a config file in the project root directory, it can be con figured using:
+- ICL (default): .automux
+- JSON: .automux.json
+- YAML: .automux.yml/.automux.yaml
+
+### ICL Config
 ```hcl
 # the session id to use for this directory
 # NOTE: this is the only required field
@@ -139,6 +154,82 @@ session "path/to/session_dir" {
         }
     }
 }
+```
+
+### JSON Config
+```json
+{
+    "session_id": "mt-session",
+    "config": "./tmux.conf",
+    "attach_existing": false,
+    "windows": [
+        {
+            "title": "window/tab title",
+            "exec": "cmd_to_run_in_window",
+            "focus": true,
+            "dir": "sub_dir/",
+            "splits": [
+                {
+                    "vertical": true,
+                    "exec": "cmd_to_run_in_split",
+                    "size": 30,
+                    "dir": "sub_dir/"
+                }
+            ]
+        },
+        {
+            "title": "vim",
+            "exec": "nvim",
+            "splits": [
+                {},
+                {
+                    "exec": "nload",
+                    "vertical": true
+                }
+            ]
+        }
+    ],
+    "sessions": [
+        {
+            "dir": "path/to/session_dir",
+            "windows": [
+                {
+                    "splits": [
+                        {}
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+### YAML Config
+```yaml
+session_id: mt-session
+config: "./tmux.conf"
+attach_existing: false
+windows:
+- title: window/tab title
+  exec: cmd_to_run_in_window
+  focus: true
+  dir: sub_dir/
+  splits:
+  - vertical: true
+    exec: cmd_to_run_in_split
+    size: 30
+    dir: sub_dir/
+- title: vim
+  exec: nvim
+  splits:
+  - {}
+  - exec: nload
+    vertical: true
+sessions:
+- dir: path/to/session_dir
+  windows:
+  - splits:
+    - {}
 ```
 
 ## Upgrade
