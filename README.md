@@ -49,6 +49,21 @@ When opening the main automux session you can optionally open one or more
 background sessions, allowing you to open multiple related projects at once ready to
 be focused from a single terminal window at will.
 
+## Getting started
+```sh
+# install aitomux
+go install github.com/indeedhat/automux@latest
+
+# change to the project directory
+cd path/to/project
+
+# init config
+automux init
+
+# start the session
+automux
+```
+
 ## Usage
 ```
 automux -h
