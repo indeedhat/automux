@@ -34,7 +34,7 @@ fi
 
 tmux_running=$(pgrep tmux)
 use_automux=1
-selected_name=$(automux -print-name "$selected/.automux" | tr . _)
+selected_name=$(automux print-name "$selected/.automux" | tr . _)
 echo $selected_name
 if [[ -z $selected_name ]]; then
     unset use_automux
